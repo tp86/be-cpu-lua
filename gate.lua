@@ -1,5 +1,6 @@
 local Input = require('metal').Input
 local Output = require('metal').Output
+local L = require('logic').L
 
 local Gate = {}
 Gate.__index = Gate
@@ -18,7 +19,7 @@ end
 function Gate:update()
   local signals = {}
   for i, input in ipairs(self.inputs) do
-    signals[i] = input.signal
+    signals[i] = input.signal or L -- assume initial state is Low
   end
   local signal = self.update_fn(table.unpack(signals))
   return self.output:propagate(signal)

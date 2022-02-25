@@ -1,2 +1,9 @@
-- [ ] [Low] allow propagation of signals on output-input connection
-- [ ] [Medium] optimizations
+- [ ] [High] update loop for testing - refactor
+- [ ] [High] tracer for timing diagrams
+- [ ] [Medium] test for initial input signal in Gate:update()
+- [x] [Medium] proper sets
+- [ ] [Medium] GUI
+- [ ] [Medium] adjustable clock
+- [ ] [Medium] manual/auto mode switch
+- [ ] [Low] allow propagation of signals on output-input connection change
+- [ ] [Low] optimizations
