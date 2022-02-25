@@ -156,4 +156,4 @@ assert(not input.connected,
       "input should not be connected")
 
 
-io.write('PASSED')
+io.write('PASSED\n')

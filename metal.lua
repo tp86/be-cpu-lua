@@ -8,7 +8,7 @@ end
 local function connect(i, o)
   i:disconnect()
   i.connected = o
-  o.connections[i] = i.component or i
+  o.connections[i] = i.component or true
 end
 
 local function flipped(f)
@@ -59,7 +59,7 @@ function Output:propagate(signal)
     -- propagate signal downstream
     input.signal = signal
     -- add downstream component to be updated
-    components[component] = component
+    components[component] = true
   end
   return components
 end

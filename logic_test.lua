@@ -25,4 +25,4 @@ assert(L & H | H == H)
 assert(~~H == H)
 
 
-io.write('PASSED')
+io.write('PASSED\n')
