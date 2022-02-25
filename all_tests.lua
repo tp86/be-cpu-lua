@@ -1,0 +1,5 @@
+require('component_test')
+require('gate_test')
+require('logic_test')
+require('loop_test')
+require('metal_test')

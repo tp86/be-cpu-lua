@@ -1,11 +1,9 @@
+local utils = require('test_utils')
 local gates = require('gate')
-local Input = require('metal').Input
 local H = require('logic').H
 local L = require('logic').L
 
-local checker = {}
-checker.input = Input.new(checker)
-checker.reset = function(self) self.input.signal = nil end
+local checker = utils.Checker.new()
 local gate
 
 local function setup(gate_name)
@@ -87,4 +85,4 @@ make_assertions{
 }
 
 
-io.write('PASSED')
+io.write('PASSED\n')
