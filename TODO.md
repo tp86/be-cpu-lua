@@ -1,2 +1,2 @@
-- [Low] allow propagation of signals on output-input connection
-- [Medium] optimizations
+- [ ] [Low] allow propagation of signals on output-input connection
+- [ ] [Medium] optimizations
