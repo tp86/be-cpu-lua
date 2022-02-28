@@ -7,11 +7,12 @@ function Input:new(parent)
 end
 
 function Input:connect(output)
-  if self.connection ~= output then
-    self.connection = output
-    if output.connect then
-      output:connect(self)
-    end
+  if self.connection == output then
+    return
+  end
+  self.connection = output
+  if output.connect then
+    output:connect(self)
   end
 end
 
@@ -41,11 +42,12 @@ function Output:connection_to(input)
 end
 
 function Output:connect(input)
-  if not self.connections[input] then
-    self.connections[input] = input.parent or true
-    if input.connect then
-      input:connect(self)
-    end
+  if self.connections[input] then
+    return
+  end
+  self.connections[input] = input.parent or true
+  if input.connect then
+    input:connect(self)
   end
 end
 
