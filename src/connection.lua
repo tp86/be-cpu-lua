@@ -74,6 +74,7 @@ return {
 local Input = {}
 function Input:new(parent)
   local new = {}
+  new.parent = parent
   self.__index = self
   return setmetatable(new, self)
 end
@@ -135,9 +136,12 @@ function Output:propagate(signal)
     return
   end
   self.current_signal = signal
-  for input in pairs(self.connections) do
+  local parents = {}
+  for input, parent in pairs(self.connections) do
     input.signal = signal
+    parents[parent] = true
   end
+  return parents
 end
 
 return {

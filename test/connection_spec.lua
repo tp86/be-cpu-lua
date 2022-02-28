@@ -25,6 +25,12 @@ describe('an Input', function()
     input:connect(output2)
     assert.equals(output2, input:connected_to())
   end)
+
+  it('has parent (gate)', function()
+    local parent = {}
+    input = Input:new(parent)
+    assert.equals(input.parent, parent)
+  end)
 end)
 
 describe('an Output', function()
@@ -71,21 +77,37 @@ describe('an Output', function()
   end)
 
   it('propagates only changed signal', function()
-    local match = require('luassert.match')
-    local s = spy.new(function() end)
-    local input = setmetatable({}, {
-      __newindex = function(t, k, v)
-        s(t, k, v)
-        rawset(t, k, v)
-      end})
+    local input = {}
     output:propagate(1)
     -- connect after signal propagation
     output:connect(input)
     output:propagate(1)
     -- signal not propagated
-    assert.spy(s).was_not_called()
+    assert.is_nil(input.signal)
     output:propagate(2)
-    assert.spy(s).was_called(1)
+    -- signal propagated
+    assert.equals(2, input.signal)
+  end)
+
+  it("has access to connected inputs' parents", function()
+    local input = {parent = {}}
+    output:connect(input)
+    assert.equals(input.parent, output:connection_to(input))
+  end)
+
+  it('returns table of unique parents of connected inputs on signal propagation', function()
+    local parent = {}
+    local input1 = {parent = parent}
+    local input2 = {parent = parent}
+    output:connect(input1)
+    output:connect(input2)
+    local parents = output:propagate(1)
+    local parents_size = 0
+    for p in pairs(parents) do
+      parents_size = parents_size + 1
+    end
+    assert.equals(1, parents_size)
+    assert.is_not_nil(parents[parent])
   end)
 end)
 
