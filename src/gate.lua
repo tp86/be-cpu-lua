@@ -1,3 +1,4 @@
+--[[
 local Input = require('metal').Input
 local Output = require('metal').Output
 local L = require('logic').L
@@ -118,4 +119,23 @@ return {
   XorGate = Xor,
   NxorGate = Nxor,
   support = support,
+}
+--]]
+
+local Gate = {}
+function Gate:new(n_inputs, has_output)
+  local new = {}
+  new.inputs = {}
+  for i = 1, n_inputs do
+    new.inputs[i] = {}
+  end
+  if has_output == nil or has_output then
+    new.output = {}
+  end
+  self.__index =  self
+  return setmetatable(new, self)
+end
+
+return {
+  Gate = Gate,
 }
