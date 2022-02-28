@@ -1,0 +1,16 @@
+#!/usr/bin/env lua
+
+local deps = {
+  "busted"
+}
+
+local git = io.popen("git rev-parse --show-toplevel")
+local git_root = git:read()
+git:close()
+local cmd = string.format("luarocks --tree %s/.luarocks install %%s", git_root)
+
+for _, dep in ipairs(deps) do
+  os.execute(string.format(cmd, dep))
+end
+
+-- vim:ft=lua
