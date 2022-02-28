@@ -96,7 +96,7 @@ function Input:disconnect()
   end
 end
 
-function Input:connected()
+function Input:connected_to()
   return self.connection
 end
 
@@ -127,6 +127,16 @@ function Output:disconnect(input)
     if input.disconnect then
       input:disconnect()
     end
+  end
+end
+
+function Output:propagate(signal)
+  if self.current_signal == signal then
+    return
+  end
+  self.current_signal = signal
+  for input in pairs(self.connections) do
+    input.signal = signal
   end
 end
 
