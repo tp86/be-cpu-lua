@@ -2,7 +2,7 @@
 
 local git_root = require('scripts.common').git_root
 
-local cmd = string.format('%s/.luarocks/bin/busted test', git_root)
+local cmd = string.format('%s/.luarocks/bin/busted --coverage test', git_root)
 os.execute(cmd)
 
 -- vim:ft=lua

@@ -3,7 +3,8 @@
 local git_root = require('scripts.common').git_root
 
 local deps = {
-  'busted'
+  'busted',
+  'LuaCov',
 }
 
 local cmd = string.format('luarocks --lua-version 5.4 --tree %s/.luarocks install %%s', git_root)

@@ -39,8 +39,9 @@ luac.out
 *.x86_64
 *.hex
 
-# Luarocks
+# Lua-project-specific
 /.luarocks/
+luacov.*
 
 # Custom
 *.swp
