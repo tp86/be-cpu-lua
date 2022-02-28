@@ -7,4 +7,5 @@ Attempt to create [Ben Eater's CPU](https://eater.net/8bit/)
 - busted (2.0.0) [dev]
 
 ## WoW
-Automation scripts are written in Lua and stored in `scripts` directory.
+- Automation scripts are written in Lua and stored in `scripts` directory
+- `;src/?.lua;src/?/init.lua` is added to `package.path`
