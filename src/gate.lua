@@ -122,20 +122,45 @@ return {
 }
 --]]
 
-local Gate = {}
-function Gate:new(n_inputs, has_output)
+local Source = {}
+function Source:new(update_fn)
+  local update_fn = update_fn or function() end
+  local new = {}
+  new.output = {}
+  new.update_fn = update_fn
+  self.__index =  self
+  return setmetatable(new, self)
+end
+
+function Source:update()
+  local signal = self.update_fn()
+  return self.output:propagate(signal)
+end
+
+local Sink = {}
+function Sink:new(update_fn, n_inputs)
+  local update_fn = update_fn or function() end
+  local n_inputs = n_inputs or 1
   local new = {}
   new.inputs = {}
   for i = 1, n_inputs do
     new.inputs[i] = {}
   end
-  if has_output == nil or has_output then
-    new.output = {}
-  end
-  self.__index =  self
+  new.update_fn = update_fn
+  self.__index = self
   return setmetatable(new, self)
 end
 
+function Sink:update()
+  local signals = {}
+  for i, input in ipairs(self.inputs) do
+    signals[i] = input.signal
+  end
+  self.update_fn(table.unpack(signals))
+  return {}
+end
+
 return {
-  Gate = Gate,
+  Source = Source,
+  Sink = Sink,
 }
