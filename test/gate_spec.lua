@@ -3,7 +3,7 @@ describe('a Source', function()
   local source
 
   before_each(function()
-    source = Source:new()
+    source = Source:clone()
   end)
 
   it('has exactly one output', function()
@@ -29,8 +29,7 @@ describe('a Source', function()
 
   it('propagates values produced by update function', function()
     local counter = 0
-    local update_fn = function() counter = counter + 1; return counter end
-    local source = Source:new(update_fn)
+    local source = Source:clone(function() counter = counter + 1; return counter end)
     local match = require('luassert.match')
     local propagate = spy.on(source.output, 'propagate')
     for _ = 1, 3 do
@@ -46,30 +45,30 @@ describe('a Sink', function()
   local Sink = require('gate').Sink
 
   it('has at least one input', function()
-    local sink = Sink:new()
+    local sink = Sink:clone()
     assert.is_true(#sink.inputs > 0)
   end)
 
   it('has no output', function()
-    local sink = Sink:new()
+    local sink = Sink:clone()
     assert.is_nil(sink.output)
   end)
 
   it('can have many inputs', function()
     local n_inputs = 3
-    local sink = Sink:new(nil, n_inputs)
+    local sink = Sink:clone(nil, n_inputs)
     assert.equals(n_inputs, #sink.inputs)
   end)
 
   it('calls provided function on update', function()
-    local sink = Sink:new(function() end)
+    local sink = Sink:clone()
     local s = spy.on(sink, 'update_fn')
     sink:update()
     assert.spy(s).was_called()
   end)
 
   it("calls update function with inputs' signals", function()
-    local sink = Sink:new(function() end, 3)
+    local sink = Sink:clone(nil, 3)
     local s = spy.on(sink, 'update_fn')
     sink.inputs[1].signal = 1
     sink.inputs[2].signal = 2
@@ -79,7 +78,7 @@ describe('a Sink', function()
   end)
 
   it('returns empty set on update', function()
-    local sink = Sink:new()
+    local sink = Sink:clone()
     local on_update = sink:update()
     assert.same({}, on_update)
   end)

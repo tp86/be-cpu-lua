@@ -122,41 +122,57 @@ return {
 }
 --]]
 
-local Source = {}
-function Source:new(update_fn)
-  local update_fn = update_fn or function() end
-  local new = {}
-  new.output = {}
-  new.update_fn = update_fn
-  self.__index =  self
-  return setmetatable(new, self)
+local Base = {}
+function Base:clone(...)
+  local clone = {}
+  self.__index = self
+  setmetatable(clone, self)
+  clone:__init(...)
+  return clone
+end
+function Base:__init()
 end
 
+local Updatable = Base:clone()
+function Updatable:__init()
+  self.update_fn = function() end
+end
+function Updatable:update()
+  return self.update_fn()
+end
+
+local Source = Updatable:clone()
+function Source:__init(update_fn)
+  if update_fn then
+    self.update_fn = update_fn
+  end
+  self.output = {}
+end
 function Source:update()
   local signal = self.update_fn()
   return self.output:propagate(signal)
 end
 
-local Sink = {}
-function Sink:new(update_fn, n_inputs)
-  local update_fn = update_fn or function() end
-  local n_inputs = n_inputs or 1
-  local new = {}
-  new.inputs = {}
-  for i = 1, n_inputs do
-    new.inputs[i] = {}
+local Sink = Updatable:clone()
+function Sink:__init(update_fn, n_inputs)
+  if update_fn then
+    self.update_fn = update_fn
   end
-  new.update_fn = update_fn
-  self.__index = self
-  return setmetatable(new, self)
+  local n_inputs = n_inputs or 1
+  self.inputs = {}
+  for i = 1, n_inputs do 
+    self.inputs[i] = {}
+  end
 end
-
-function Sink:update()
+function Sink:apply_update_fn(inputs)
   local signals = {}
-  for i, input in ipairs(self.inputs) do
+  for i, input in ipairs(inputs) do
     signals[i] = input.signal
   end
-  self.update_fn(table.unpack(signals))
+  return self.update_fn(table.unpack(signals))
+end
+function Sink:update()
+  self:apply_update_fn(self.inputs)
   return {}
 end
 
