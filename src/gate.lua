@@ -160,7 +160,10 @@ function Sink:update()
   return {}
 end
 
+local Gate = {}
+
 return {
   Source = Source,
   Sink = Sink,
+  Gate = Gate,
 }

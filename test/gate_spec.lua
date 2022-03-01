@@ -84,3 +84,16 @@ describe('a Sink', function()
     assert.same({}, on_update)
   end)
 end)
+
+describe('a Gate', function()
+  local Gate = require('gate').Gate
+
+  pending('has at least one input and exactly one output', function()
+  end)
+
+  pending("applies provided function on inputs' signals and propagates result through output on update", function()
+  end)
+
+  pending('returns result of output propagation on update', function()
+  end)
+end)
