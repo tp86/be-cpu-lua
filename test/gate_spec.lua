@@ -87,7 +87,10 @@ end)
 describe('a Gate', function()
   local Gate = require('gate').Gate
 
-  pending('has at least one input and exactly one output', function()
+  it('has at least one input and exactly one output', function()
+    local gate = Gate:new()
+    assert.is_true(#gate.inputs > 0)
+    assert.is_not_nil(gate.output)
   end)
 
   pending("applies provided function on inputs' signals and propagates result through output on update", function()

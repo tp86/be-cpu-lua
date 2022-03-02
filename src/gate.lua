@@ -125,9 +125,21 @@ return {
 local Base = {}
 function Base:new(...)
   local new = {}
+  self.__index = self
   self.__index = function(new, field)
-    local value = rawget(new, field)
-    return value or self[field]
+    local super_field = string.match(field, "super_([%a_][%w_]*)")
+    if super_field then
+      return function(inst, level)
+        local level = level or 1
+        local value = new:super(level)[super_field]
+        if type(value) == 'function' then
+          return function(...) return value(inst, ...) end
+        else
+          return value
+        end
+      end
+    end
+    return rawget(new, field) or self[field]
   end
   setmetatable(new, self)
   new:_init(...)
@@ -135,10 +147,10 @@ function Base:new(...)
 end
 function Base:_init()
 end
-function Base:super(n)
-  local n = n or 1
+function Base:super(level)
+  local level = level or 1
   local super = self
-  for i = 1, n do
+  for i = 1, level do
     super = getmetatable(super)
   end
   return super
@@ -159,7 +171,7 @@ function Source:_init(update_fn)
   self.output = {}
 end
 function Source:update()
-  local signal = self:super(2).update(self)
+  local signal = self:super_update(2)()
   return self.output:propagate(signal)
 end
 
@@ -187,6 +199,7 @@ function Sink:update()
 end
 
 local Gate = {}
+-- TODO multiple inheritance
 
 return {
   Source = Source,
