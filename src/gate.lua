@@ -126,21 +126,6 @@ local Base = {}
 function Base:new(...)
   local new = {}
   self.__index = self
-  self.__index = function(new, field)
-    local super_field = string.match(field, "super_([%a_][%w_]*)")
-    if super_field then
-      return function(inst, level)
-        local level = level or 1
-        local value = new:super(level)[super_field]
-        if type(value) == 'function' then
-          return function(...) return value(inst, ...) end
-        else
-          return value
-        end
-      end
-    end
-    return rawget(new, field) or self[field]
-  end
   setmetatable(new, self)
   new:_init(...)
   return new
@@ -171,7 +156,7 @@ function Source:_init(update_fn)
   self.output = {}
 end
 function Source:update()
-  local signal = self:super_update(2)()
+  local signal = self:super(2).update(self)
   return self.output:propagate(signal)
 end
 
