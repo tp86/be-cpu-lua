@@ -125,15 +125,23 @@ return {
 local Base = {}
 function Base:new(...)
   local new = {}
-  self.__index = self
+  self.__index = function(new, field)
+    local value = rawget(new, field)
+    return value or self[field]
+  end
   setmetatable(new, self)
-  new:__init(...)
+  new:_init(...)
   return new
 end
-function Base:__init()
+function Base:_init()
 end
-function Base:super()
-  return getmetatable(getmetatable(self))
+function Base:super(n)
+  local n = n or 1
+  local super = self
+  for i = 1, n do
+    super = getmetatable(super)
+  end
+  return super
 end
 
 local Updatable = Base:new()
@@ -144,19 +152,19 @@ function Updatable:update(...)
 end
 
 local Source = Updatable:new()
-function Source:__init(update_fn)
+function Source:_init(update_fn)
   if update_fn then
     self.update_fn = update_fn
   end
   self.output = {}
 end
 function Source:update()
-  local signal = self:super().update(self)
+  local signal = self:super(2).update(self)
   return self.output:propagate(signal)
 end
 
 local Sink = Updatable:new()
-function Sink:__init(update_fn, n_inputs)
+function Sink:_init(update_fn, n_inputs)
   if update_fn then
     self.update_fn = update_fn
   end
