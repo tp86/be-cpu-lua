@@ -123,25 +123,27 @@ return {
 --]]
 
 local Base = {}
-function Base:clone(...)
-  local clone = {}
+function Base:new(...)
+  local new = {}
   self.__index = self
-  setmetatable(clone, self)
-  clone:__init(...)
-  return clone
+  setmetatable(new, self)
+  new:__init(...)
+  return new
 end
 function Base:__init()
 end
-
-local Updatable = Base:clone()
-function Updatable:__init()
-  self.update_fn = function() end
-end
-function Updatable:update()
-  return self.update_fn()
+function Base:super()
+  return getmetatable(getmetatable(self))
 end
 
-local Source = Updatable:clone()
+local Updatable = Base:new()
+Updatable.update_fn = function() end
+function Updatable:update(...)
+  local result = self.update_fn(...)
+  return result
+end
+
+local Source = Updatable:new()
 function Source:__init(update_fn)
   if update_fn then
     self.update_fn = update_fn
@@ -149,11 +151,11 @@ function Source:__init(update_fn)
   self.output = {}
 end
 function Source:update()
-  local signal = self.update_fn()
+  local signal = self:super().update(self)
   return self.output:propagate(signal)
 end
 
-local Sink = Updatable:clone()
+local Sink = Updatable:new()
 function Sink:__init(update_fn, n_inputs)
   if update_fn then
     self.update_fn = update_fn
