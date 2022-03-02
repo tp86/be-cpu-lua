@@ -121,31 +121,41 @@ return {
   support = support,
 }
 --]]
-
+local parents = {}
 local Base = {}
 function Base:new(...)
   local new = {}
-  self.__index = self
+  parents[new] = {self}
+  self.__index = function(_, field)
+    for _, parent in ipairs(parents[new]) do
+      local value = parent[field]
+      if value ~= nil then return value end
+    end
+  end
   setmetatable(new, self)
   new:_init(...)
   return new
 end
 function Base:_init()
 end
-function Base:super(level)
+function Base:super(level, sibling)
   local level = level or 1
+  local sibling = sibling or 1
   local super = self
-  for i = 1, level do
+  for i = 1, level - 1 do
     super = getmetatable(super)
   end
-  return super
+  return parents[super][sibling]
+end
+function Base:add_parent(parent)
+  local ps = parents[self]
+  ps[#ps + 1] = parent
 end
 
 local Updatable = Base:new()
 Updatable.update_fn = function() end
 function Updatable:update(...)
-  local result = self.update_fn(...)
-  return result
+  return self.update_fn(...)
 end
 
 local Source = Updatable:new()
@@ -156,7 +166,7 @@ function Source:_init(update_fn)
   self.output = {}
 end
 function Source:update()
-  local signal = self:super(2).update(self)
+  local signal = Source:super().update(self)
   return self.output:propagate(signal)
 end
 
@@ -171,19 +181,17 @@ function Sink:_init(update_fn, n_inputs)
     self.inputs[i] = {}
   end
 end
-function Sink:apply_update_fn(inputs)
+function Sink:update()
   local signals = {}
-  for i, input in ipairs(inputs) do
+  for i, input in ipairs(self.inputs) do
     signals[i] = input.signal
   end
-  return self.update_fn(table.unpack(signals))
-end
-function Sink:update()
-  self:apply_update_fn(self.inputs)
+  Sink:super().update(self, table.unpack(signals))
   return {}
 end
 
-local Gate = {}
+local Gate = Source:new()
+Gate:add_parent(Sink)
 -- TODO multiple inheritance
 
 return {
