@@ -93,7 +93,15 @@ describe('a Gate', function()
     assert.is_not_nil(gate.output)
   end)
 
-  pending("applies provided function on inputs' signals and propagates result through output on update", function()
+  it("applies provided function on inputs' signals and propagates result through output on update", function()
+    local n_inputs = 2
+    local gate = Gate:new(function(a, b) return a + b end, n_inputs)
+    local propagate = spy.on(gate.output, 'propagate')
+    local match = require('luassert.match')
+    gate.inputs[1].signal = 2
+    gate.inputs[2].signal = 3
+    gate:update()
+    assert.spy(propagate).was_called_with(match.is_ref(gate.output), 5)
   end)
 
   pending('returns result of output propagation on update', function()

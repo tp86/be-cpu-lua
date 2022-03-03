@@ -153,14 +153,18 @@ function Base:add_parent(parent)
 end
 
 local Updatable = Base:new()
+Updatable.prepare_update_args = function() end
 Updatable.update_fn = function() end
+Updatable.process_update_results = function() end
 function Updatable:_init(update_fn)
   if update_fn then
     self.update_fn = update_fn
   end
 end
 function Updatable:update(...)
-  return self.update_fn(...)
+  local args = table.pack(self:prepare_update_args())
+  local results = table.pack(self.update_fn(table.unpack(args)))
+  return self:process_update_results(table.unpack(results))
 end
 
 local Source = Updatable:new()
@@ -168,8 +172,7 @@ function Source:_init(update_fn)
   Source:super()._init(self, update_fn)
   self.output = {}
 end
-function Source:update()
-  local signal = Source:super().update(self)
+function Source:process_update_results(signal)
   return self.output:propagate(signal)
 end
 
@@ -182,22 +185,25 @@ function Sink:_init(update_fn, n_inputs)
     self.inputs[i] = {}
   end
 end
-function Sink:update()
+function Sink:prepare_update_args()
   local signals = {}
   for i, input in ipairs(self.inputs) do
     signals[i] = input.signal
   end
-  Sink:super().update(self, table.unpack(signals))
+  return table.unpack(signals)
+end
+function Sink:process_update_results()
   return {}
 end
 
 local Gate = Source:new()
 Gate:add_parent(Sink)
+-- needed because of multiple inheritance method resolution
+Gate.prepare_update_args = Sink.prepare_update_args
 function Gate:_init(update_fn, n_inputs)
   Gate:super()._init(self) -- Source
   Gate:super(1, 2)._init(self, update_fn, n_inputs) -- Sink
 end
--- TODO multiple inheritance
 
 return {
   Source = Source,
