@@ -154,15 +154,18 @@ end
 
 local Updatable = Base:new()
 Updatable.update_fn = function() end
+function Updatable:_init(update_fn)
+  if update_fn then
+    self.update_fn = update_fn
+  end
+end
 function Updatable:update(...)
   return self.update_fn(...)
 end
 
 local Source = Updatable:new()
 function Source:_init(update_fn)
-  if update_fn then
-    self.update_fn = update_fn
-  end
+  Source:super()._init(self, update_fn)
   self.output = {}
 end
 function Source:update()
@@ -172,9 +175,7 @@ end
 
 local Sink = Updatable:new()
 function Sink:_init(update_fn, n_inputs)
-  if update_fn then
-    self.update_fn = update_fn
-  end
+  Sink:super()._init(self, update_fn)
   local n_inputs = n_inputs or 1
   self.inputs = {}
   for i = 1, n_inputs do 
@@ -192,6 +193,10 @@ end
 
 local Gate = Source:new()
 Gate:add_parent(Sink)
+function Gate:_init(update_fn, n_inputs)
+  Gate:super()._init(self) -- Source
+  Gate:super(1, 2)._init(self, update_fn, n_inputs) -- Sink
+end
 -- TODO multiple inheritance
 
 return {
