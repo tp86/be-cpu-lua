@@ -104,6 +104,11 @@ describe('a Gate', function()
     assert.spy(propagate).was_called_with(match.is_ref(gate.output), 5)
   end)
 
-  pending('returns result of output propagation on update', function()
+  it('returns result of output propagation on update', function()
+    local gate = Gate:new()
+    local return_value = {1}
+    stub(gate.output, 'propagate').returns(return_value)
+    local result = gate:update()
+    assert.equals(return_value, result)
   end)
 end)
