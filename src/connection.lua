@@ -61,7 +61,7 @@ function Output:disconnect(input)
 end
 
 function Output:propagate(signal)
-  if self.current_signal == signal then
+  if self.current_signal ~= nil and self.current_signal == signal then
     return
   end
   self.current_signal = signal

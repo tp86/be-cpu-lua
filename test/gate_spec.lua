@@ -138,3 +138,24 @@ describe('a connection between Gates', function()
     assert.equals(source_gate.output, sink_gate.inputs[1]:connected())
   end)
 end)
+
+describe('an upstream Gate', function()
+  local Gate = require('gate').Gate
+
+  it('returns (set of) downstream gates on update', function()
+    local upstream = Gate:new()
+    local downstream1 = Gate:new()
+    local downstream2 = Gate:new()
+    upstream.output:connect(downstream1.inputs[1])
+    upstream.output:connect(downstream2.inputs[1])
+    local downstreams = upstream:update()
+    assert.same({[downstream1] = true, [downstream2] = true}, downstreams)
+  end)
+end)
+
+describe('a downstream Gate', function()
+  local Gate = require('gate').Gate
+
+  pending('receives results of upstream gates updates', function()
+  end)
+end)
