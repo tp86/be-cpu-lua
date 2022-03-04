@@ -169,3 +169,39 @@ describe('a downstream Gate', function()
     assert.spy(downstream_update).was_called_with(1, 2)
   end)
 end)
+
+local L = require('logic').L
+local H = require('logic').H
+local function assert_all(gate, data)
+  local match = require('luassert.match')
+  for _, inputs_outputs in ipairs(data) do
+    local inputs, outputs = table.unpack(inputs_outputs)
+    for input, signal in pairs(inputs) do
+      gate[input].signal = signal
+    end
+    local output_spies = {}
+    for output in pairs(outputs) do
+      output_spies[output] = spy.on(gate[output], 'propagate')
+    end
+    gate:update()
+    for output, expected in pairs(outputs) do
+      assert.spy(output_spies[output]).was_called_with(match.is_ref(gate[output]), expected)
+    end
+  end
+end
+
+describe('a Not gate', function()
+  it('implements signal negation function', function()
+    local not_gate = require('gate').Not:new()
+    assert_all(not_gate, {
+      {{A = L}, {B = H}},
+      {{A = H}, {B = L}}
+    })
+  end)
+end)
+
+describe('an And gate', function()
+  pending('implements Boolean And function', function()
+    local and_gate = require('gate')
+  end)
+end)

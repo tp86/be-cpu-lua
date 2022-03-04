@@ -210,8 +210,15 @@ function Gate:_init(update_fn, n_inputs)
   Gate:super(1, 2)._init(self, update_fn, n_inputs) -- Sink
 end
 
+local Not = Gate:new(function(s) return ~s end)
+function Not:_init()
+  self.A = self.inputs[1]
+  self.B = self.output
+end
+
 return {
   Source = Source,
   Sink = Sink,
   Gate = Gate,
+  Not = Not,
 }
