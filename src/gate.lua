@@ -167,14 +167,19 @@ function Updatable:update(...)
   return self:process_update_results(table.unpack(results))
 end
 
+local connection = require('connection')
+local Output = connection.Output
+
 local Source = Updatable:new()
 function Source:_init(update_fn)
   Source:super()._init(self, update_fn)
-  self.output = {}
+  self.output = Output:new()
 end
 function Source:process_update_results(signal)
   return self.output:propagate(signal)
 end
+
+local Input = connection.Input
 
 local Sink = Updatable:new()
 function Sink:_init(update_fn, n_inputs)
@@ -182,7 +187,7 @@ function Sink:_init(update_fn, n_inputs)
   local n_inputs = n_inputs or 1
   self.inputs = {}
   for i = 1, n_inputs do 
-    self.inputs[i] = {}
+    self.inputs[i] = Input:new(self)
   end
 end
 function Sink:prepare_update_args()

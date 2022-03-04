@@ -25,7 +25,7 @@ function Input:disconnect()
   end
 end
 
-function Input:connected_to()
+function Input:connected()
   return self.connection
 end
 

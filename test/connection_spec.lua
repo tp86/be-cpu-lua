@@ -9,21 +9,21 @@ describe('an Input', function()
   it('can be connected', function()
     local output = {}
     input:connect(output)
-    assert.equals(output, input:connected_to())
+    assert.equals(output, input:connected())
   end)
 
   it('can be disconnected', function()
     input:disconnect()
-    assert.is_falsy(input:connected_to())
+    assert.is_falsy(input:connected())
   end)
 
   it('can be connected to one output at a time', function()
     local output1 = {}
     local output2 = {}
     input:connect(output1)
-    assert.equals(output1, input:connected_to())
+    assert.equals(output1, input:connected())
     input:connect(output2)
-    assert.equals(output2, input:connected_to())
+    assert.equals(output2, input:connected())
   end)
 
   it('has parent (gate)', function()
@@ -130,7 +130,7 @@ describe('a Connection', function()
 
   it('is established on Output connectin', function()
     output:connect(input)
-    assert.is_truthy(input:connected_to())
+    assert.is_truthy(input:connected())
   end)
 
   it('is removed on Input disconnection', function()
@@ -142,6 +142,6 @@ describe('a Connection', function()
   it('is removed on Output disconnection', function()
     output:connect(input)
     output:disconnect(input)
-    assert.is_falsy(input:connected_to())
+    assert.is_falsy(input:connected())
   end)
 end)

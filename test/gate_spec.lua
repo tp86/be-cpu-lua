@@ -118,3 +118,18 @@ describe('a Gate', function()
     assert.equals(return_value, result)
   end)
 end)
+
+describe('a connection between Gates', function()
+  local Gate = require('gate').Gate
+
+  it('can be established by upstream (source) gate', function()
+    local source_gate = Gate:new()
+    local sink_gate = Gate:new()
+    source_gate.output:connect(sink_gate.inputs[1])
+    assert.is_not_nil(source_gate.output.connections[sink_gate.inputs[1]])
+    assert.equals(source_gate.output, sink_gate.inputs[1]:connected())
+  end)
+
+  it('can be established by downstream (sink) gate', function()
+  end)
+end)
