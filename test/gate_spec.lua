@@ -93,6 +93,12 @@ describe('a Gate', function()
     assert.is_not_nil(gate.output)
   end)
 
+  it('has specified number of inputs', function()
+    local n_inputs = 3
+    local gate = Gate:new(nil, n_inputs)
+    assert.equals(n_inputs, #gate.inputs)
+  end)
+
   it("applies provided function on inputs' signals and propagates result through output on update", function()
     local n_inputs = 2
     local gate = Gate:new(function(a, b) return a + b end, n_inputs)
