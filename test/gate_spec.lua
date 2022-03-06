@@ -3,7 +3,7 @@ describe('a Source', function()
   local source
 
   before_each(function()
-    source = Source:new()
+    source = Source:clone()
   end)
 
   it('has exactly one output', function()
@@ -29,7 +29,7 @@ describe('a Source', function()
 
   it('propagates values produced by update function', function()
     local counter = 0
-    local source = Source:new(function() counter = counter + 1; return counter end)
+    local source = Source:clone(function() counter = counter + 1; return counter end)
     local match = require('luassert.match')
     local propagate = spy.on(source.output, 'propagate')
     for _ = 1, 3 do
@@ -45,30 +45,30 @@ describe('a Sink', function()
   local Sink = require('gate').Sink
 
   it('has at least one input', function()
-    local sink = Sink:new()
+    local sink = Sink:clone()
     assert.is_true(#sink.inputs > 0)
   end)
 
   it('has no output', function()
-    local sink = Sink:new()
+    local sink = Sink:clone()
     assert.is_nil(sink.output)
   end)
 
   it('can have many inputs', function()
     local n_inputs = 3
-    local sink = Sink:new(nil, n_inputs)
+    local sink = Sink:clone(nil, n_inputs)
     assert.equals(n_inputs, #sink.inputs)
   end)
 
   it('calls provided function on update', function()
-    local sink = Sink:new()
+    local sink = Sink:clone()
     local s = spy.on(sink, 'update_fn')
     sink:update()
     assert.spy(s).was_called()
   end)
 
   it("calls update function with inputs' signals", function()
-    local sink = Sink:new(nil, 3)
+    local sink = Sink:clone(nil, 3)
     local s = spy.on(sink, 'update_fn')
     sink.inputs[1].signal = 1
     sink.inputs[2].signal = 2
@@ -78,7 +78,7 @@ describe('a Sink', function()
   end)
 
   it('returns empty set on update', function()
-    local sink = Sink:new()
+    local sink = Sink:clone()
     local on_update = sink:update()
     assert.same({}, on_update)
   end)
@@ -88,20 +88,20 @@ describe('a Gate', function()
   local Gate = require('gate').Gate
 
   it('has at least one input and exactly one output', function()
-    local gate = Gate:new()
+    local gate = Gate:clone()
     assert.is_true(#gate.inputs > 0)
     assert.is_not_nil(gate.output)
   end)
 
   it('has specified number of inputs', function()
     local n_inputs = 3
-    local gate = Gate:new(nil, n_inputs)
+    local gate = Gate:clone(nil, n_inputs)
     assert.equals(n_inputs, #gate.inputs)
   end)
 
   it("applies provided function on inputs' signals and propagates result through output on update", function()
     local n_inputs = 2
-    local gate = Gate:new(function(a, b) return a + b end, n_inputs)
+    local gate = Gate:clone(function(a, b) return a + b end, n_inputs)
     local propagate = spy.on(gate.output, 'propagate')
     local match = require('luassert.match')
     gate.inputs[1].signal = 2
@@ -111,7 +111,7 @@ describe('a Gate', function()
   end)
 
   it('returns result of output propagation on update', function()
-    local gate = Gate:new()
+    local gate = Gate:clone()
     local return_value = {1}
     stub(gate.output, 'propagate').returns(return_value)
     local result = gate:update()
@@ -123,16 +123,16 @@ describe('a connection between Gates', function()
   local Gate = require('gate').Gate
 
   it('can be established by upstream (source) gate', function()
-    local source_gate = Gate:new()
-    local sink_gate = Gate:new()
+    local source_gate = Gate:clone()
+    local sink_gate = Gate:clone()
     source_gate.output:connect(sink_gate.inputs[1])
     assert.is_not_nil(source_gate.output.connections[sink_gate.inputs[1]])
     assert.equals(source_gate.output, sink_gate.inputs[1]:connected())
   end)
 
   it('can be established by downstream (sink) gate', function()
-    local source_gate = Gate:new()
-    local sink_gate = Gate:new()
+    local source_gate = Gate:clone()
+    local sink_gate = Gate:clone()
     sink_gate.inputs[1]:connect(source_gate.output)
     assert.is_not_nil(source_gate.output.connections[sink_gate.inputs[1]])
     assert.equals(source_gate.output, sink_gate.inputs[1]:connected())
@@ -143,9 +143,9 @@ describe('an upstream Gate', function()
   local Gate = require('gate').Gate
 
   it('returns (set of) downstream gates on update', function()
-    local upstream = Gate:new()
-    local downstream1 = Gate:new()
-    local downstream2 = Gate:new()
+    local upstream = Gate:clone()
+    local downstream1 = Gate:clone()
+    local downstream2 = Gate:clone()
     upstream.output:connect(downstream1.inputs[1])
     upstream.output:connect(downstream2.inputs[1])
     local downstreams = upstream:update()
@@ -157,9 +157,9 @@ describe('a downstream Gate', function()
   local Gate = require('gate').Gate
 
   it('receives results of upstream gates updates', function()
-    local upstream1 = Gate:new(function() return 1 end)
-    local upstream2 = Gate:new(function() return 2 end)
-    local downstream = Gate:new(nil, 2)
+    local upstream1 = Gate:clone(function() return 1 end)
+    local upstream2 = Gate:clone(function() return 2 end)
+    local downstream = Gate:clone(nil, 2)
     upstream1.output:connect(downstream.inputs[1])
     upstream2.output:connect(downstream.inputs[2])
     local downstream_update = spy.on(downstream, 'update_fn')
@@ -192,7 +192,7 @@ end
 
 describe('a Not gate', function()
   it('implements signal negation function', function()
-    local not_gate = require('gate').Not:new()
+    local not_gate = require('gate').Not:clone()
     assert_all(not_gate, {
       {{A = L}, {B = H}},
       {{A = H}, {B = L}}
@@ -202,7 +202,7 @@ end)
 
 describe('an And gate', function()
   it('implements Boolean And function', function()
-    local and_gate = require('gate').And:new()
+    local and_gate = require('gate').And:clone()
     assert_all(and_gate, {
       {{A = L, B = L}, {C = L}},
       {{A = H, B = L}, {C = L}},

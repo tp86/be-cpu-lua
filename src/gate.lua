@@ -121,42 +121,45 @@ return {
   support = support,
 }
 --]]
-local parents = {}
-local Base = {}
-function Base:new(...)
-  local new = {}
-  parents[new] = {self}
-  self.__index = function(_, field)
-    for _, parent in ipairs(parents[new]) do
-      local value = parent[field]
-      if value ~= nil then return value end
+local do_nil = function() end
+local prototypes = {}
+local prototypes_mt = {
+  __index = function(t, k)
+    for _, prototype in ipairs(prototypes[t]) do
+      local v = prototype[k]
+      if v ~= nil then return v end
     end
   end
-  setmetatable(new, self)
-  new:_init(...)
-  return new
+}
+local Prototype = {}
+function Prototype:prototype_of(obj)
+  local ps = prototypes[obj] or {}
+  ps[#ps + 1] = self
+  prototypes[obj] = ps
+  setmetatable(obj, prototypes_mt)
 end
-function Base:_init()
+function Prototype:clone(...)
+  local clone = {}
+  self:prototype_of(clone)
+  clone:configure(...)
+  return clone
 end
-function Base:super(level, sibling)
+Prototype.configure = do_nil
+function Prototype:prototype(level, sibling)
   local level = level or 1
   local sibling = sibling or 1
-  local super = self
+  local prototype = self
   for i = 1, level - 1 do
-    super = getmetatable(super)
+    prototype = getmetatable(prototype)
   end
-  return parents[super][sibling]
-end
-function Base:add_parent(parent)
-  local ps = parents[self]
-  ps[#ps + 1] = parent
+  return prototypes[prototype][sibling]
 end
 
-local Updatable = Base:new()
-Updatable.prepare_update_args = function() end
-Updatable.update_fn = function() end
-Updatable.process_update_results = function() end
-function Updatable:_init(update_fn)
+local Updatable = Prototype:clone()
+Updatable.prepare_update_args = do_nil
+Updatable.update_fn = do_nil
+Updatable.process_update_results = do_nil
+function Updatable:configure(update_fn)
   if update_fn then
     self.update_fn = update_fn
   end
@@ -170,9 +173,9 @@ end
 local connection = require('connection')
 local Output = connection.Output
 
-local Source = Updatable:new()
-function Source:_init(update_fn)
-  Source:super()._init(self, update_fn)
+local Source = Updatable:clone()
+function Source:configure(update_fn)
+  Source:prototype().configure(self, update_fn)
   self.output = Output:new()
 end
 function Source:process_update_results(signal)
@@ -181,12 +184,15 @@ end
 
 local Input = connection.Input
 
-local Sink = Updatable:new()
-function Sink:_init(update_fn, n_inputs)
-  Sink:super()._init(self, update_fn)
-  local n_inputs = n_inputs or 1
+local Sink = Updatable:clone()
+Sink.n_inputs = 1
+function Sink:configure(update_fn, n_inputs)
+  Sink:prototype().configure(self, update_fn)
+  if n_inputs then
+    self.n_inputs = n_inputs
+  end
   self.inputs = {}
-  for i = 1, n_inputs do 
+  for i = 1, self.n_inputs do
     self.inputs[i] = Input:new(self)
   end
 end
@@ -201,27 +207,25 @@ function Sink:process_update_results()
   return {}
 end
 
-local Gate = Source:new()
-Gate:add_parent(Sink)
+local Gate = Source:clone()
+Sink:prototype_of(Gate)
 -- needed because of multiple inheritance method resolution
 Gate.prepare_update_args = Sink.prepare_update_args
-function Gate:_init(update_fn, n_inputs)
-  Gate:super()._init(self) -- Source
-  Gate:super(1, 2)._init(self, update_fn, n_inputs) -- Sink
+function Gate:configure(update_fn, n_inputs)
+  Gate:prototype().configure(self) -- Source
+  Gate:prototype(1, 2).configure(self, update_fn, n_inputs) -- Sink
 end
 
-local Not = Gate:new(function(s) return ~s end)
-function Not:_init()
+local Not = Gate:clone(function(s) return ~s end)
+function Not:configure()
   self.A = self.inputs[1]
   self.B = self.output
 end
 
-local Gate2 = Gate:new(nil, 2)
-function Gate2:_init(update_fn)
-  return Gate2:super()._init(self, update_fn, #self.inputs)
-end
-local And = Gate2:new(function(a, b) return a & b end)
-function And:_init()
+local Gate2 = Gate:clone()
+Gate2.n_inputs = 2
+local And = Gate2:clone(function(a, b) return a & b end)
+function And:configure()
   self.A = self.inputs[1]
   self.B = self.inputs[2]
   self.C = self.output
