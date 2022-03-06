@@ -201,7 +201,13 @@ describe('a Not gate', function()
 end)
 
 describe('an And gate', function()
-  pending('implements Boolean And function', function()
-    local and_gate = require('gate')
+  it('implements Boolean And function', function()
+    local and_gate = require('gate').And:new()
+    assert_all(and_gate, {
+      {{A = L, B = L}, {C = L}},
+      {{A = H, B = L}, {C = L}},
+      {{A = L, B = H}, {C = L}},
+      {{A = H, B = H}, {C = H}},
+    })
   end)
 end)

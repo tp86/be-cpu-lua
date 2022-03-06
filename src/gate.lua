@@ -216,9 +216,21 @@ function Not:_init()
   self.B = self.output
 end
 
+local Gate2 = Gate:new(nil, 2)
+function Gate2:_init(update_fn)
+  return Gate2:super()._init(self, update_fn, #self.inputs)
+end
+local And = Gate2:new(function(a, b) return a & b end)
+function And:_init()
+  self.A = self.inputs[1]
+  self.B = self.inputs[2]
+  self.C = self.output
+end
+
 return {
   Source = Source,
   Sink = Sink,
   Gate = Gate,
   Not = Not,
+  And = And,
 }
