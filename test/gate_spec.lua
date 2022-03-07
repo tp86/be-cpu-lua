@@ -323,6 +323,13 @@ describe('a Probe gate', function()
     probe:update()
     assert.equals(2, result)
   end)
+
+  it('stores last received value', function()
+    local probe = Probe:clone(callback)
+    probe.input.signal = 2
+    probe:update()
+    assert.equals(2, probe.value)
+  end)
 end)
 
 describe('a Printer gate', function()
