@@ -274,3 +274,100 @@ describe('a Nxor gate', function()
     })
   end)
 end)
+
+describe('a Broadcast gate', function()
+  local Broadcast = require('gate').support.Broadcast
+
+  it('has single input', function()
+    local broadcast = Broadcast:clone()
+    assert.equals(1, #broadcast.inputs)
+    assert.is_not_nil(broadcast.input)
+  end)
+
+  it('passes signal from input to all connected inputs', function()
+    local Sink = require('gate').Sink
+    local broadcast = Broadcast:clone()
+    local sink1 = Sink:clone()
+    local sink2 = Sink:clone()
+    sink1.inputs[1]:connect(broadcast.output)
+    sink2.inputs[1]:connect(broadcast.output)
+    broadcast.input.signal = 1
+    assert.is_nil(sink1.inputs[1].signal)
+    assert.is_nil(sink2.inputs[1].signal)
+    broadcast:update()
+    assert.equals(1, sink1.inputs[1].signal)
+    assert.equals(1, sink2.inputs[1].signal)
+  end)
+end)
+
+describe('a Probe gate', function()
+  local Probe = require('gate').support.Probe
+
+  it('has one input', function()
+    local probe = Probe:clone()
+    assert.equals(1, #probe.inputs)
+    assert.is_not_nil(probe.input)
+  end)
+
+  it('has no outputs', function()
+    local probe = Probe:clone()
+    assert.is_nil(probe.output)
+  end)
+
+  it('calls provided closure on update', function()
+    local result
+    local callback = function(signal) result = signal end
+    local probe = Probe:clone(callback)
+    probe.input.signal = 2
+    assert.is_nil(result)
+    probe:update()
+    assert.equals(2, result)
+  end)
+end)
+
+describe('a Printer gate', function()
+  local Printer = require('gate').support.Printer
+  local old_out
+  local out
+
+  before_each(function()
+    old_out = io.output()
+    out = io.tmpfile()
+    io.output(out)
+  end)
+
+  after_each(function()
+    io.output(old_out)
+  end)
+
+  it('has one input', function()
+    local printer = Printer:clone()
+    assert.equals(1, #printer.inputs)
+    assert.is_not_nil(printer.input)
+  end)
+
+  it('has no outputs', function()
+    local printer = Printer:clone()
+    assert.is_nil(printer.output)
+  end)
+
+  it('prints received signal value', function()
+    local printer = Printer:clone()
+    local input = 3
+    printer.input.signal = input
+    printer:update()
+    out:seek('end', -1)
+    local result = out:read('n')
+    assert.equals(result, input)
+  end)
+
+  it('prints custom-labeled signal value', function()
+    local label = 'custom'
+    local printer = Printer:clone(label)
+    printer.input.signal = 3
+    printer:update()
+    out:seek('set')
+    local result = out:read()
+    assert.is_truthy(string.match(result, label))
+  end)
+end)
