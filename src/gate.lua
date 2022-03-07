@@ -22,15 +22,6 @@ function Prototype:clone(...)
   return clone
 end
 Prototype.configure = do_nil
-function Prototype:prototype(level, sibling)
-  local level = level or 1
-  local sibling = sibling or 1
-  local prototype = self
-  for i = 1, level - 1 do
-    prototype = getmetatable(prototype)
-  end
-  return prototypes[prototype][sibling]
-end
 
 local Updatable = Prototype:clone()
 Updatable.prepare_update_args = do_nil
@@ -52,7 +43,7 @@ local Output = connection.Output
 
 local Source = Updatable:clone()
 function Source:configure(update_fn)
-  Source:prototype().configure(self, update_fn)
+  Updatable.configure(self, update_fn)
   self.output = Output:new()
 end
 function Source:process_update_results(signal)
@@ -64,7 +55,7 @@ local Input = connection.Input
 local Sink = Updatable:clone()
 Sink.n_inputs = 1
 function Sink:configure(update_fn, n_inputs)
-  Sink:prototype().configure(self, update_fn)
+  Updatable.configure(self, update_fn)
   if n_inputs then
     self.n_inputs = n_inputs
   end
@@ -86,11 +77,10 @@ end
 
 local Gate = Source:clone()
 Sink:prototype_of(Gate)
--- needed because of multiple inheritance method resolution
 Gate.prepare_update_args = Sink.prepare_update_args
 function Gate:configure(update_fn, n_inputs)
-  Gate:prototype().configure(self) -- Source
-  Gate:prototype(1, 2).configure(self, update_fn, n_inputs) -- Sink
+  Source.configure(self)
+  Sink.configure(self, update_fn, n_inputs)
 end
 
 local Not = Gate:clone(function(s) return ~s end)
@@ -102,7 +92,7 @@ end
 local Gate2 = Gate:clone()
 Gate2.n_inputs = 2
 function Gate2:configure(update_fn)
-  Gate2:prototype().configure(self, update_fn)
+  Gate.configure(self, update_fn)
   self.A = self.inputs[1]
   self.B = self.inputs[2]
   self.C = self.output
@@ -129,12 +119,12 @@ end
 local Probe = Sink:clone()
 Probe.n_inputs = 1
 Probe.prepare_update_args = function(self)
-  local arg = Probe:prototype().prepare_update_args(self)
+  local arg = Sink.prepare_update_args(self)
   self.value = arg
   return arg
 end
 function Probe:configure(update_fn)
-  Probe:prototype().configure(self, update_fn)
+  Sink.configure(self, update_fn)
   self.input = self.inputs[1]
 end
 
@@ -144,7 +134,7 @@ function Printer:configure(label)
   local callback = function(signal)
     io.write(string.format('%8.8s: %s', self.label, signal))
   end
-  Printer:prototype().configure(self, callback)
+  Probe.configure(self, callback)
 end
 
 return {
