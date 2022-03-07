@@ -1,7 +1,7 @@
 describe('a High-state signal', function()
-  local logic = require('logic')
-  local H = logic.H
-  local L = logic.L
+  local signal = require('signal')
+  local H = signal.H
+  local L = signal.L
 
   it('shows itself in meaningful way', function()
     assert.equals('1', tostring(H))
@@ -37,9 +37,9 @@ describe('a High-state signal', function()
 end)
 
 describe('a Low-state signal', function()
-  local logic = require('logic')
-  local H = logic.H
-  local L = logic.L
+  local signal = require('signal')
+  local H = signal.H
+  local L = signal.L
 
   it('shows itself in meaningful way', function()
     assert.equals('0', tostring(L))

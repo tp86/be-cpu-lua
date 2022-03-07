@@ -173,8 +173,8 @@ describe('a downstream Gate', function()
   end)
 end)
 
-local L = require('logic').L
-local H = require('logic').H
+local L = require('signal').L
+local H = require('signal').H
 local function assert_all(gate, data)
   local match = require('luassert.match')
   for _, inputs_outputs in ipairs(data) do
