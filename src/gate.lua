@@ -224,12 +224,24 @@ end
 
 local Gate2 = Gate:clone()
 Gate2.n_inputs = 2
-local And = Gate2:clone(function(a, b) return a & b end)
-function And:configure()
+function Gate2:configure(update_fn)
+  Gate2:prototype().configure(self, update_fn)
   self.A = self.inputs[1]
   self.B = self.inputs[2]
   self.C = self.output
 end
+
+local And = Gate2:clone(function(a, b) return a & b end)
+
+local Nand = Gate2:clone(function(a, b) return ~(a & b) end)
+
+local Or = Gate2:clone(function(a, b) return a | b end)
+
+local Nor = Gate2:clone(function(a, b) return ~(a | b) end)
+
+local Xor = Gate2:clone(function(a, b) return a ~ b end)
+
+local Nxor = Gate2:clone(function(a, b) return ~(a ~ b) end)
 
 return {
   Source = Source,
@@ -237,4 +249,9 @@ return {
   Gate = Gate,
   Not = Not,
   And = And,
+  Nand = Nand,
+  Or = Or,
+  Nor = Nor,
+  Xor = Xor,
+  Nxor = Nxor,
 }

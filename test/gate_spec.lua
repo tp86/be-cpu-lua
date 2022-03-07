@@ -121,18 +121,21 @@ end)
 
 describe('a connection between Gates', function()
   local Gate = require('gate').Gate
+  local source_gate
+  local sink_gate
+
+  before_each(function()
+    source_gate = Gate:clone()
+    sink_gate = Gate:clone()
+  end)
 
   it('can be established by upstream (source) gate', function()
-    local source_gate = Gate:clone()
-    local sink_gate = Gate:clone()
     source_gate.output:connect(sink_gate.inputs[1])
     assert.is_not_nil(source_gate.output.connections[sink_gate.inputs[1]])
     assert.equals(source_gate.output, sink_gate.inputs[1]:connected())
   end)
 
   it('can be established by downstream (sink) gate', function()
-    local source_gate = Gate:clone()
-    local sink_gate = Gate:clone()
     sink_gate.inputs[1]:connect(source_gate.output)
     assert.is_not_nil(source_gate.output.connections[sink_gate.inputs[1]])
     assert.equals(source_gate.output, sink_gate.inputs[1]:connected())
@@ -192,8 +195,8 @@ end
 
 describe('a Not gate', function()
   it('implements signal negation function', function()
-    local not_gate = require('gate').Not:clone()
-    assert_all(not_gate, {
+    local gate = require('gate').Not:clone()
+    assert_all(gate, {
       {{A = L}, {B = H}},
       {{A = H}, {B = L}}
     })
@@ -202,9 +205,69 @@ end)
 
 describe('an And gate', function()
   it('implements Boolean And function', function()
-    local and_gate = require('gate').And:clone()
-    assert_all(and_gate, {
+    local gate = require('gate').And:clone()
+    assert_all(gate, {
       {{A = L, B = L}, {C = L}},
+      {{A = H, B = L}, {C = L}},
+      {{A = L, B = H}, {C = L}},
+      {{A = H, B = H}, {C = H}},
+    })
+  end)
+end)
+
+describe('a Nand gate', function()
+  it('implements Boolean Nand function', function()
+    local gate = require('gate').Nand:clone()
+    assert_all(gate, {
+      {{A = L, B = L}, {C = H}},
+      {{A = H, B = L}, {C = H}},
+      {{A = L, B = H}, {C = H}},
+      {{A = H, B = H}, {C = L}},
+    })
+  end)
+end)
+
+describe('an Or gate', function()
+  it('implements Boolean Or function', function()
+    local gate = require('gate').Or:clone()
+    assert_all(gate, {
+      {{A = L, B = L}, {C = L}},
+      {{A = H, B = L}, {C = H}},
+      {{A = L, B = H}, {C = H}},
+      {{A = H, B = H}, {C = H}},
+    })
+  end)
+end)
+
+describe('a Nor gate', function()
+  it('implements Boolean Nor function', function()
+    local gate = require('gate').Nor:clone()
+    assert_all(gate, {
+      {{A = L, B = L}, {C = H}},
+      {{A = H, B = L}, {C = L}},
+      {{A = L, B = H}, {C = L}},
+      {{A = H, B = H}, {C = L}},
+    })
+  end)
+end)
+
+describe('an Xor gate', function()
+  it('implements Boolean Xor function', function()
+    local gate = require('gate').Xor:clone()
+    assert_all(gate, {
+      {{A = L, B = L}, {C = L}},
+      {{A = H, B = L}, {C = H}},
+      {{A = L, B = H}, {C = H}},
+      {{A = H, B = H}, {C = L}},
+    })
+  end)
+end)
+
+describe('a Nxor gate', function()
+  it('implements Boolean Nxor function', function()
+    local gate = require('gate').Nxor:clone()
+    assert_all(gate, {
+      {{A = L, B = L}, {C = H}},
       {{A = H, B = L}, {C = L}},
       {{A = L, B = H}, {C = L}},
       {{A = H, B = H}, {C = H}},
