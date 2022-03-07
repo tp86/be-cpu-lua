@@ -327,6 +327,7 @@ describe('a Probe gate', function()
   it('stores last received value', function()
     local probe = Probe:clone(callback)
     probe.input.signal = 2
+    assert.is_nil(probe.value)
     probe:update()
     assert.equals(2, probe.value)
   end)

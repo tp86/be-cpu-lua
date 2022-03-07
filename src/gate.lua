@@ -128,9 +128,10 @@ end
 
 local Probe = Sink:clone()
 Probe.n_inputs = 1
-Probe.process_update_results = function(self, result)
-  self.value = result
-  return Probe:prototype().process_update_results(self, result)
+Probe.prepare_update_args = function(self)
+  local arg = Probe:prototype().prepare_update_args(self)
+  self.value = arg
+  return arg
 end
 function Probe:configure(update_fn)
   Probe:prototype().configure(self, update_fn)
