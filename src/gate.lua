@@ -137,6 +137,29 @@ function Printer:configure(label)
   Probe.configure(self, callback)
 end
 
+local SignalSource = Source:clone()
+function SignalSource:prepare_update_args()
+  return self.signal
+end
+function SignalSource:configure(update_fn, init_signal)
+  Source.configure(self, update_fn)
+  self.signal = init_signal or 0
+end
+local Flipper = SignalSource:clone(function(s) return ~s end)
+function Flipper:process_update_results(s)
+  self.signal = s
+  return Source.process_update_results(self, s)
+end
+local L = require('signal').L
+function Flipper:configure(start_value)
+  self.signal = ~(start_value or L)
+end
+
+local Constant = SignalSource:clone(function(s) return s end)
+function Constant:configure(signal)
+  self.signal = signal
+end
+
 return {
   Source = Source,
   Sink = Sink,
@@ -152,5 +175,7 @@ return {
     Broadcast = Broadcast,
     Probe = Probe,
     Printer = Printer,
+    Flipper = Flipper,
+    Constant = Constant,
   },
 }
