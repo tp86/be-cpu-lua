@@ -1,27 +1,5 @@
+local Prototype = require('prototype')
 local do_nil = function() end
-local prototypes = {}
-local prototypes_mt = {
-  __index = function(t, k)
-    for _, prototype in ipairs(prototypes[t]) do
-      local v = prototype[k]
-      if v ~= nil then return v end
-    end
-  end
-}
-local Prototype = {}
-function Prototype:prototype_of(obj)
-  local ps = prototypes[obj] or {}
-  ps[#ps + 1] = self
-  prototypes[obj] = ps
-  setmetatable(obj, prototypes_mt)
-end
-function Prototype:clone(...)
-  local clone = {}
-  self:prototype_of(clone)
-  clone:configure(...)
-  return clone
-end
-Prototype.configure = do_nil
 
 local Updatable = Prototype:clone()
 Updatable.prepare_update_args = do_nil
@@ -44,7 +22,7 @@ local Output = connection.Output
 local Source = Updatable:clone()
 function Source:configure(update_fn)
   Updatable.configure(self, update_fn)
-  self.output = Output:new()
+  self.output = Output:clone()
 end
 function Source:process_update_results(signal)
   return self.output:propagate(signal)
@@ -61,7 +39,7 @@ function Sink:configure(update_fn, n_inputs)
   end
   self.inputs = {}
   for i = 1, self.n_inputs do
-    self.inputs[i] = Input:new(self)
+    self.inputs[i] = Input:clone(self)
   end
 end
 function Sink:prepare_update_args()

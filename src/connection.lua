@@ -1,11 +1,9 @@
-local Input = {}
-function Input:new(parent)
-  local new = {}
-  new.parent = parent
-  self.__index = self
-  return setmetatable(new, self)
-end
+local Prototype = require('prototype')
 
+local Input = Prototype:clone()
+function Input:configure(parent)
+  self.parent = parent
+end
 function Input:connect(output)
   if self.connection == output then
     return
@@ -15,7 +13,6 @@ function Input:connect(output)
     output:connect(self)
   end
 end
-
 function Input:disconnect()
   if self.connection then
     if self.connection.disconnect then
@@ -24,23 +21,17 @@ function Input:disconnect()
     self.connection = nil
   end
 end
-
 function Input:connected()
   return self.connection
 end
 
-local Output = {}
-function Output:new()
-  local new = {}
-  new.connections = {}
-  self.__index = self
-  return setmetatable(new, self)
+local Output = Prototype:clone()
+function Output:configure()
+  self.connections = {}
 end
-
 function Output:connection_to(input)
   return self.connections[input]
 end
-
 function Output:connect(input)
   if self.connections[input] then
     return
@@ -50,7 +41,6 @@ function Output:connect(input)
     input:connect(self)
   end
 end
-
 function Output:disconnect(input)
   if self.connections[input] then
     self.connections[input] = nil
@@ -59,7 +49,6 @@ function Output:disconnect(input)
     end
   end
 end
-
 function Output:propagate(signal)
   if self.current_signal ~= nil and self.current_signal == signal then
     return

@@ -3,7 +3,7 @@ describe('an Input', function()
   local input
 
   before_each(function()
-    input = Input:new()
+    input = Input:clone()
   end)
 
   it('can be connected', function()
@@ -28,7 +28,7 @@ describe('an Input', function()
 
   it('has parent (gate)', function()
     local parent = {}
-    input = Input:new(parent)
+    input = Input:clone(parent)
     assert.equals(input.parent, parent)
   end)
 end)
@@ -38,7 +38,7 @@ describe('an Output', function()
   local output
 
   before_each(function()
-    output = Output:new()
+    output = Output:clone()
   end)
 
   it('can be connected', function()
@@ -119,8 +119,8 @@ describe('a Connection', function()
   local input, output
 
   before_each(function()
-    input = Input:new()
-    output = Output:new()
+    input = Input:clone()
+    output = Output:clone()
   end)
 
   it('is established on Input connection', function()
