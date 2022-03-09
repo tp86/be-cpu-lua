@@ -1,8 +1,10 @@
 local Prototype = require('prototype')
+local L = require('signal').L
 
 local Input = Prototype:clone()
 function Input:configure(parent)
   self.parent = parent
+  self.signal = L
 end
 function Input:connect(output)
   if self.connection == output then

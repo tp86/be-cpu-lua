@@ -292,8 +292,6 @@ describe('a Broadcast gate', function()
     sink1.inputs[1]:connect(broadcast.output)
     sink2.inputs[1]:connect(broadcast.output)
     broadcast.input.signal = 1
-    assert.is_nil(sink1.inputs[1].signal)
-    assert.is_nil(sink2.inputs[1].signal)
     broadcast:update()
     assert.equals(1, sink1.inputs[1].signal)
     assert.equals(1, sink2.inputs[1].signal)

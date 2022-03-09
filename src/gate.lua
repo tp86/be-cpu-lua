@@ -63,6 +63,7 @@ end
 
 local Not = Gate:clone(function(s) return ~s end)
 function Not:configure()
+  Gate.configure(self, self.update_fn, self.n_inputs)
   self.A = self.inputs[1]
   self.B = self.output
 end
@@ -91,6 +92,7 @@ local Nxor = Gate2:clone(function(a, b) return ~(a ~ b) end)
 local Broadcast = Gate:clone(function(signal) return signal end)
 Broadcast.n_inputs = 1
 function Broadcast:configure()
+  Gate.configure(self, self.update_fn, self.n_inputs)
   self.input = self.inputs[1]
 end
 
@@ -130,11 +132,13 @@ function Flipper:process_update_results(s)
 end
 local L = require('signal').L
 function Flipper:configure(start_value)
+  SignalSource.configure(self, self.update_fn)
   self.signal = ~(start_value or L)
 end
 
 local Constant = SignalSource:clone(function(s) return s end)
 function Constant:configure(signal)
+  SignalSource.configure(self, self.update_fn)
   self.signal = signal
 end
 
