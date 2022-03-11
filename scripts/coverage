@@ -1,0 +1,8 @@
+#!/usr/bin/env lua
+
+local git_root = require('scripts.common').git_root
+
+local cmd = string.format("%s/.luarocks/bin/luacov && sed -En '/File\\s+Hits\\s+Missed\\s+Coverage/,$p' luacov.report.out", git_root)
+os.execute(cmd)
+
+-- vim:ft=lua

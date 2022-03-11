@@ -12,4 +12,3 @@ local function update_all(components_to_update)
 end
 
 return update_all
-
