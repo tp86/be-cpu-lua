@@ -1,3 +1,4 @@
+local extend = require('oop').extend
 local Prototype = require('prototype')
 local do_nil = function() end
 
@@ -22,7 +23,7 @@ local Output = connection.Output
 local Source = Updatable:clone()
 function Source:configure(update_fn)
   Updatable.configure(self, update_fn)
-  self.output = Output:clone()
+  self.output = extend(Output)()
 end
 function Source:process_update_results(signal)
   return self.output:propagate(signal)
@@ -39,7 +40,7 @@ function Sink:configure(update_fn, n_inputs)
   end
   self.inputs = {}
   for i = 1, self.n_inputs do
-    self.inputs[i] = Input:clone(self)
+    self.inputs[i] = extend(Input)(self)
   end
 end
 function Sink:prepare_update_args()
