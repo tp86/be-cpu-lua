@@ -54,7 +54,7 @@ local Output = {
   end,
   propagate = function(self, signal)
     if self.current_signal ~= nil and self.current_signal == signal then
-      return
+      return {}
     end
     self.current_signal = signal
     local parents = {}
