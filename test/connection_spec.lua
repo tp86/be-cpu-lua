@@ -31,6 +31,11 @@ describe('an Input', function()
     input = Input:clone(parent)
     assert.equals(input.parent, parent)
   end)
+
+  it('has default signal when not yet propagated from connected output', function()
+    assert.is_nil(input:connected())
+    assert.is_not_nil(input.signal)
+  end)
 end)
 
 describe('an Output', function()
