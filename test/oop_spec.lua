@@ -77,4 +77,17 @@ describe('a table', function()
     extend(base, extension)(x, y, z)
     assert.spy(init).was_called_with(match.is_ref(extension), x, y, z)
   end)
+
+  it('can setup inheritance in init', function()
+    local base = {
+      x = {},
+    }
+    local extension = {
+      init = function(obj)
+        extend(base, obj)()
+      end,
+    }
+    local instance = extend(extension)()
+    assert.equals(base.x, instance.x)
+  end)
 end)

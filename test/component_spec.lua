@@ -4,11 +4,11 @@ describe('a Component', function()
   local ComponentBase = require('component').ComponentBase
   local H = require('signal').H
 
-  it('updates itself on creation', function()
+  pending('updates itself on creation', function()
     local Not = require('gate').Not
-    local not1 = Not:clone()
-    local not2 = Not:clone()
-    local not3 = Not:clone()
+    local not1 = extend(Not)()
+    local not2 = extend(Not)()
+    local not3 = extend(Not)()
     local TestComponent = extend(ComponentBase, {
       function(comp)
         not1.B:connect(not2.A)

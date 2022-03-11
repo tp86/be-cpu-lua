@@ -1,95 +1,86 @@
 local extend = require('oop').extend
-local Prototype = require('prototype')
-local do_nil = function() end
-
-local Updatable = Prototype:clone()
-Updatable.prepare_update_args = do_nil
-Updatable.update_fn = do_nil
-Updatable.process_update_results = do_nil
-function Updatable:configure(update_fn)
-  if update_fn then
-    self.update_fn = update_fn
-  end
-end
-function Updatable:update(...)
-  local args = table.pack(self:prepare_update_args())
-  local results = table.pack(self.update_fn(table.unpack(args)))
-  return self:process_update_results(table.unpack(results))
-end
-
 local connection = require('connection')
 local Output = connection.Output
-
-local Source = Updatable:clone()
-function Source:configure(update_fn)
-  Updatable.configure(self, update_fn)
-  self.output = extend(Output)()
-end
-function Source:process_update_results(signal)
-  return self.output:propagate(signal)
-end
-
 local Input = connection.Input
+local do_nil = function() end
 
-local Sink = Updatable:clone()
-Sink.n_inputs = 1
-function Sink:configure(update_fn, n_inputs)
-  Updatable.configure(self, update_fn)
-  if n_inputs then
-    self.n_inputs = n_inputs
-  end
-  self.inputs = {}
-  for i = 1, self.n_inputs do
-    self.inputs[i] = extend(Input)(self)
-  end
-end
-function Sink:prepare_update_args()
-  local signals = {}
-  for i, input in ipairs(self.inputs) do
-    signals[i] = input.signal
-  end
-  return table.unpack(signals)
-end
-function Sink:process_update_results()
-  return {}
-end
+local Updatable = {
+  prepare_update_args = do_nil,
+  update_fn = do_nil,
+  process_update_results = do_nil,
+  update = function(self)
+    local args = table.pack(self:prepare_update_args())
+    local results = table.pack(self.update_fn(table.unpack(args)))
+    return self:process_update_results(table.unpack(results))
+  end,
+}
 
-local Gate = Source:clone()
-Sink:prototype_of(Gate)
-Gate.prepare_update_args = Sink.prepare_update_args
-function Gate:configure(update_fn, n_inputs)
-  Source.configure(self)
-  Sink.configure(self, update_fn, n_inputs)
-end
+local Source = extend(Updatable, {
+  init = function(obj)
+    obj.output = extend(Output)()
+  end,
+  process_update_results = function(self, signal)
+    return self.output:propagate(signal)
+  end,
+})()
 
-local Not = Gate:clone(function(s) return ~s end)
-function Not:configure()
-  Gate.configure(self, self.update_fn, self.n_inputs)
-  self.A = self.inputs[1]
-  self.B = self.output
-end
+local Sink = extend(Updatable, {
+  init = function(obj, n_inputs)
+    local n_inputs = n_inputs or 1
+    obj.inputs = {}
+    for i = 1, n_inputs do
+      obj.inputs[i] = extend(Input)(obj)
+    end
+  end,
+  prepare_update_args = function(self)
+    local signals = {}
+    for i, input in ipairs(self.inputs) do
+      signals[i] = input.signal
+    end
+    return table.unpack(signals)
+  end,
+  process_update_results = function(self)
+    return {}
+  end,
+})()
 
-local Gate2 = Gate:clone()
-Gate2.n_inputs = 2
-function Gate2:configure(update_fn)
-  Gate.configure(self, update_fn)
-  self.A = self.inputs[1]
-  self.B = self.inputs[2]
-  self.C = self.output
-end
+local Gate = {
+  init = function(obj, n_inputs)
+    extend(Source, obj)()
+    extend(Sink, obj)(n_inputs)
+  end,
+  prepare_update_args = Sink.prepare_update_args,
+}
 
-local And = Gate2:clone(function(a, b) return a & b end)
+local Not = extend(Gate, {
+  init = function(obj)
+    obj.A = obj.inputs[1]
+    obj.B = obj.output
+  end,
+  update_fn = function(s) return ~s end,
+})()
 
-local Nand = Gate2:clone(function(a, b) return ~(a & b) end)
+local Gate2 = extend(Gate, {
+  init = function(obj)
+    obj.A = obj.inputs[1]
+    obj.B = obj.inputs[2]
+    obj.C = obj.output
+  end,
+})(2)
 
-local Or = Gate2:clone(function(a, b) return a | b end)
+local And = extend(Gate2, {update_fn = function(a, b) return a & b end})()
 
-local Nor = Gate2:clone(function(a, b) return ~(a | b) end)
+local Nand = extend(Gate2, {update_fn = function(a, b) return ~(a & b) end})()
 
-local Xor = Gate2:clone(function(a, b) return a ~ b end)
+local Or = extend(Gate2, {update_fn = function(a, b) return a | b end})()
 
-local Nxor = Gate2:clone(function(a, b) return ~(a ~ b) end)
+local Nor = extend(Gate2, {update_fn = function(a, b) return ~(a | b) end})()
 
+local Xor = extend(Gate2, {update_fn = function(a, b) return a ~ b end})()
+
+local Nxor = extend(Gate2, {update_fn = function(a, b) return ~(a ~ b) end})()
+
+--[[
 local Broadcast = Gate:clone(function(signal) return signal end)
 Broadcast.n_inputs = 1
 function Broadcast:configure()
@@ -142,6 +133,7 @@ function Constant:configure(signal)
   SignalSource.configure(self, self.update_fn)
   self.signal = signal
 end
+--]]
 
 return {
   Source = Source,
@@ -154,6 +146,7 @@ return {
   Nor = Nor,
   Xor = Xor,
   Nxor = Nxor,
+  --[[
   support = {
     Broadcast = Broadcast,
     Probe = Probe,
@@ -161,4 +154,5 @@ return {
     Flipper = Flipper,
     Constant = Constant,
   },
+  --]]
 }

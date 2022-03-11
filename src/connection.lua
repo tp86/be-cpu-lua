@@ -1,4 +1,3 @@
-local extend = require('oop').extend
 local L = require('signal').L
 
 local Input = {
