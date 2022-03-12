@@ -14,11 +14,21 @@ local function add_base(extension, base)
   setmetatable(extension, bases_mt)
 end
 
-local extend = function(base, extension)
+local function extend(base, extension)
   local extension = extension or {}
+  local extension_init = extension.init
   add_base(extension, base)
   return function(...)
-    (base.init or function() end)(extension, ...)
+    local base_init = base.init or function() end
+    extension.init = nil
+    base_init(extension, ...)
+    if extension_init then
+      local args = table.pack(...)
+      extension.init = function(obj, ...)
+        extend(base, obj)(table.unpack(args))
+        extension_init(obj, ...)
+      end
+    end
     return extension
   end
 end

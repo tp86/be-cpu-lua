@@ -4,7 +4,7 @@ describe('a Component', function()
   local ComponentBase = require('component').ComponentBase
   local H = require('signal').H
 
-  pending('updates itself on creation', function()
+  it('updates itself on creation', function()
     local Not = require('gate').Not
     local not1 = extend(Not)()
     local not2 = extend(Not)()

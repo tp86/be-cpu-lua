@@ -90,4 +90,7 @@ describe('a table', function()
     local instance = extend(extension)()
     assert.equals(base.x, instance.x)
   end)
+
+  pending('init overwriting', function()
+  end)
 end)

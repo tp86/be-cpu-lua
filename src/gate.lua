@@ -2,6 +2,7 @@ local extend = require('oop').extend
 local connection = require('connection')
 local Output = connection.Output
 local Input = connection.Input
+local L = require('signal').L
 local do_nil = function() end
 
 local Updatable = {
@@ -80,60 +81,50 @@ local Xor = extend(Gate2, {update_fn = function(a, b) return a ~ b end})()
 
 local Nxor = extend(Gate2, {update_fn = function(a, b) return ~(a ~ b) end})()
 
---[[
-local Broadcast = Gate:clone(function(signal) return signal end)
-Broadcast.n_inputs = 1
-function Broadcast:configure()
-  Gate.configure(self, self.update_fn, self.n_inputs)
-  self.input = self.inputs[1]
-end
+local Broadcast = extend(Gate, {
+  init = function(obj)
+    obj.input = obj.inputs[1]
+  end,
+  update_fn = function(signal) return signal end,
+})(1)
 
-local Probe = Sink:clone()
-Probe.n_inputs = 1
-Probe.prepare_update_args = function(self)
-  local arg = Sink.prepare_update_args(self)
-  self.value = arg
-  return arg
-end
-function Probe:configure(update_fn)
-  Sink.configure(self, update_fn)
-  self.input = self.inputs[1]
-end
+local Probe
+Probe = extend(Sink, {
+  init = function(obj)
+    obj.input = obj.inputs[1]
+  end,
+  prepare_update_args = function(self)
+    local arg = Sink.prepare_update_args(self)
+    self.value = arg
+    return arg
+  end,
+})(1)
 
-local Printer = Probe:clone()
-function Printer:configure(label)
-  self.label = label or 'Printer'
-  local callback = function(signal)
-    io.write(string.format('%8.8s: %s', self.label, signal))
-  end
-  Probe.configure(self, callback)
-end
+local Printer = extend(Probe, {
+  init = function(obj, label)
+    obj.label = label or 'Printer'
+    obj.update_fn = function(signal)
+      io.write(string.format('%8.8s: %s', obj.label, signal))
+    end
+  end,
+})()
 
-local SignalSource = Source:clone()
-function SignalSource:prepare_update_args()
-  return self.signal
-end
-function SignalSource:configure(update_fn, init_signal)
-  Source.configure(self, update_fn)
-  self.signal = init_signal or 0
-end
-local Flipper = SignalSource:clone(function(s) return ~s end)
-function Flipper:process_update_results(s)
-  self.signal = s
-  return Source.process_update_results(self, s)
-end
-local L = require('signal').L
-function Flipper:configure(start_value)
-  SignalSource.configure(self, self.update_fn)
-  self.signal = ~(start_value or L)
-end
+local SignalSource = extend(Source, {
+  signal = 0,
+  prepare_update_args = function(self)
+    return self.signal
+  end,
+  update_fn = function(s) return s end,
+})()
 
-local Constant = SignalSource:clone(function(s) return s end)
-function Constant:configure(signal)
-  SignalSource.configure(self, self.update_fn)
-  self.signal = signal
-end
---]]
+local Flipper = extend(SignalSource, {
+  update_fn = function(s) return ~s end,
+  process_update_results = function(self, s)
+    self.signal = s
+    return SignalSource.process_update_results(self, s)
+  end,
+  signal = L,
+})()
 
 return {
   Source = Source,
@@ -146,13 +137,11 @@ return {
   Nor = Nor,
   Xor = Xor,
   Nxor = Nxor,
-  --[[
   support = {
     Broadcast = Broadcast,
     Probe = Probe,
     Printer = Printer,
     Flipper = Flipper,
-    Constant = Constant,
+    Constant = SignalSource,
   },
-  --]]
 }

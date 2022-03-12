@@ -2,6 +2,7 @@ local ComponentBase = {
   init = function(Component)
     Component.init = function(instance)
       instance[1](instance)
+      -- TODO extract to external function
       local gates_to_update = {}
       for _, gate in ipairs(instance.input_gates or error('component should have specified input_gates', 3)) do
         gates_to_update[gate] = true

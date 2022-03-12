@@ -420,7 +420,7 @@ describe('a Constant source', function()
   end)
 
   it('produces constant signal value on update', function()
-    local constant = extend(Constant)(1)
+    local constant = extend(Constant, {signal = 1})()
     local s = spy.on(constant.output, 'propagate')
     local ref = require('luassert.match').is_ref(constant.output)
     constant:update()
