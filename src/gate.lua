@@ -88,8 +88,7 @@ local Broadcast = extend(Gate, {
   update_fn = function(signal) return signal end,
 })(1)
 
-local Probe
-Probe = extend(Sink, {
+local Probe = extend(Sink, {
   init = function(obj)
     obj.input = obj.inputs[1]
   end,
