@@ -9,10 +9,6 @@ high = setmetatable(high, {
   __tostring = function() return '1' end,
 })
 
-function low.and_(s) return low end
-function low.or_(s) return s end
-function low.not_() return high end
-function low.xor_(s) if s == high then return high else return low end end
 low = setmetatable(low, {
   __band = function() return low end,
   __bor = function(_, o) return o end,

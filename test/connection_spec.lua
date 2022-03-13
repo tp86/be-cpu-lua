@@ -1,9 +1,11 @@
+local extend = require('oop').extend
+
 describe('an Input', function()
   local Input = require('connection').Input
   local input
 
   before_each(function()
-    input = Input:clone()
+    input = extend(Input)()
   end)
 
   it('can be connected', function()
@@ -28,7 +30,7 @@ describe('an Input', function()
 
   it('has parent (gate)', function()
     local parent = {}
-    input = Input:clone(parent)
+    input = extend(Input)(parent)
     assert.equals(input.parent, parent)
   end)
 
@@ -43,7 +45,7 @@ describe('an Output', function()
   local output
 
   before_each(function()
-    output = Output:clone()
+    output = extend(Output)()
   end)
 
   it('can be connected', function()
@@ -124,8 +126,8 @@ describe('a Connection', function()
   local input, output
 
   before_each(function()
-    input = Input:clone()
-    output = Output:clone()
+    input = extend(Input)()
+    output = extend(Output)()
   end)
 
   it('is established on Input connection', function()
