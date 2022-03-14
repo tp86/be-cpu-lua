@@ -147,14 +147,14 @@ end)
 describe('an upstream Gate', function()
   local Gate = require('gate').Gate
 
-  it('returns (set of) downstream gates on update', function()
+  it('returns (array of) downstream gates on update', function()
     local upstream = extend(Gate)()
     local downstream1 = extend(Gate)()
     local downstream2 = extend(Gate)()
     upstream.output:connect(downstream1.inputs[1])
     upstream.output:connect(downstream2.inputs[1])
     local downstreams = upstream:update()
-    assert.same({[downstream1] = true, [downstream2] = true}, downstreams)
+    assert.same({downstream1, downstream2}, downstreams)
   end)
 end)
 

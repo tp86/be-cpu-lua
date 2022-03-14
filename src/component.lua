@@ -1,29 +1,11 @@
 local extend = require('oop').extend
 local gates = require('gate')
 
-local function update_all_from(input_gates)
-  local gates_to_update = input_gates
-  repeat
-    local next_gates = {}
-    for gate in pairs(gates_to_update) do
-      local gates = gate:update()
-      for gate in pairs(gates) do
-        next_gates[gate] = true
-      end
-    end
-    gates_to_update = next_gates
-  until not next(gates_to_update)
-end
-
 local ComponentBase = {
   init = function(Component)
     Component.init = function(instance)
       instance[1](instance)
-      local gates_to_update = {}
-      for _, gate in ipairs(instance.input_gates or error('component should have specified input_gates', 3)) do
-        gates_to_update[gate] = true
-      end
-      update_all_from(gates_to_update)
+      gates.update_all_from(instance.input_gates or error('component should have specified input_gates', 3))
     end
   end,
 }
@@ -44,6 +26,5 @@ local SR = extend(ComponentBase, {
 
 return {
   ComponentBase = ComponentBase,
-  update_all_from = update_all_from,
   SR = SR,
 }

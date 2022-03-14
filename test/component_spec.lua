@@ -1,7 +1,7 @@
 local extend = require('oop').extend
 local L = require('signal').L
 local H = require('signal').H
-local update_all_from = require('component').update_all_from
+local update_all_from = require('gate').update_all_from
 
 describe('a Component', function()
   local ComponentBase = require('component').ComponentBase
@@ -40,11 +40,7 @@ local function assert_all(comp, data)
     for input, signal in pairs(inputs) do
       comp[input].signal = signal
     end
-    local input_gates = {}
-    for _, gate in ipairs(comp.input_gates) do
-      input_gates[gate] = true
-    end
-    update_all_from(input_gates)
+    update_all_from(comp.input_gates)
     for output, expected in pairs(outputs) do
       assert.equals(expected, comp[output].current_signal)
     end

@@ -59,7 +59,7 @@ local Output = {
     local parents = {}
     for input, parent in pairs(self.connections) do
       input.signal = signal
-      parents[parent] = true
+      parents[#parents + 1] = parent
     end
     return parents
   end,
