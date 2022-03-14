@@ -102,19 +102,16 @@ describe('an Output', function()
     assert.equals(input.parent, output:connection_to(input))
   end)
 
-  it('returns table of unique parents of connected inputs on signal propagation', function()
+  it('returns array of parents of connected inputs on signal propagation', function()
     local parent = {}
     local input1 = {parent = parent}
     local input2 = {parent = parent}
     output:connect(input1)
     output:connect(input2)
     local parents = output:propagate(1)
-    local parents_size = 0
-    for p in pairs(parents) do
-      parents_size = parents_size + 1
-    end
-    assert.equals(1, parents_size)
-    assert.is_not_nil(parents[parent])
+    assert.equals(2, #parents)
+    assert.equals(parent, parents[1])
+    assert.equals(parent, parents[2])
   end)
 end)
 

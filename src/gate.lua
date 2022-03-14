@@ -125,6 +125,24 @@ local Flipper = extend(SignalSource, {
   signal = L,
 })()
 
+local function update_all_from(input_gates)
+  local gates_to_update = input_gates
+  repeat
+    local next_gates = {}
+    local updated_gates = {}
+    for _, gate in ipairs(gates_to_update) do
+      if updated_gates[gate] then goto cont end
+      updated_gates[gate] = true
+      local gates = gate:update()
+      for _, gate in ipairs(gates) do
+        next_gates[#next_gates + 1] = gate
+      end
+      ::cont::
+    end
+    gates_to_update = next_gates
+  until not next(gates_to_update)
+end
+
 return {
   Source = Source,
   Sink = Sink,
@@ -143,4 +161,5 @@ return {
     Flipper = Flipper,
     Constant = SignalSource,
   },
+  update_all_from = update_all_from,
 }
