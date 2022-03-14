@@ -1,8 +1,10 @@
 local extend = require('oop').extend
+local L = require('signal').L
+local H = require('signal').H
+local update_all_from = require('component').update_all_from
 
 describe('a Component', function()
   local ComponentBase = require('component').ComponentBase
-  local H = require('signal').H
 
   it('updates itself on creation', function()
     local Not = require('gate').Not
@@ -29,5 +31,53 @@ describe('a Component', function()
     assert.spy(update2).was_called()
     assert.spy(update3).was_called()
     assert.equals(H, comp.Out.current_signal)
+  end)
+end)
+
+local function assert_all(comp, data)
+  for _, inputs_outputs in ipairs(data) do
+    local inputs, outputs = table.unpack(inputs_outputs)
+    for input, signal in pairs(inputs) do
+      comp[input].signal = signal
+    end
+    local input_gates = {}
+    for _, gate in ipairs(comp.input_gates) do
+      input_gates[gate] = true
+    end
+    update_all_from(input_gates)
+    for output, expected in pairs(outputs) do
+      assert.equals(expected, comp[output].current_signal)
+    end
+  end
+end
+
+describe('a SR latch', function()
+  local SR = require('component').SR
+  local sr
+
+  before_each(function()
+    sr = extend(SR)()
+  end)
+
+  it('has proper interface', function()
+    assert.is_not_nil(sr.S)
+    assert.is_not_nil(sr.R)
+    assert.is_not_nil(sr.Q)
+    assert.is_not_nil(sr._Q)
+  end)
+
+  it('is initialized in reset state', function()
+    assert.equals(L, sr.Q.current_signal)
+    assert.equals(H, sr._Q.current_signal)
+  end)
+
+  it('latches on set and reset states', function()
+    assert_all(sr, {
+      {{S = L, R = L}, {Q = L, _Q = H}},
+      {{S = H, R = L}, {Q = H, _Q = L}},
+      {{S = L, R = L}, {Q = H, _Q = L}},
+      {{S = L, R = H}, {Q = L, _Q = H}},
+      {{S = L, R = L}, {Q = L, _Q = H}},
+    })
   end)
 end)
