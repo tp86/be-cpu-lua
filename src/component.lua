@@ -3,12 +3,21 @@ local gates = require('gate')
 
 local ComponentBase = {
   init = function(Component)
-    Component.init = function(instance)
-      instance[1](instance)
+    Component.init = function(instance, ...)
+      instance[1](instance, ...)
       gates.update_all_connected_gates(instance.input_gates or error('component should have specified input_gates', 3))
     end
   end,
 }
+
+local Clock = extend(ComponentBase, {
+  function(clock, signal)
+    local flipper = extend(gates.support.Flipper)()
+    flipper.signal = ~(signal or flipper.signal)
+    clock.CLK = flipper.output
+    clock.input_gates = {flipper}
+  end,
+})()
 
 local SR = extend(ComponentBase, {
   function(sr)
@@ -26,5 +35,6 @@ local SR = extend(ComponentBase, {
 
 return {
   ComponentBase = ComponentBase,
+  Clock = Clock,
   SR = SR,
 }

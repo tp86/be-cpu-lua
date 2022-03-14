@@ -47,6 +47,37 @@ local function assert_all(comp, data)
   end
 end
 
+describe('a clock', function()
+  local Clock = require('component').Clock
+  local clock
+
+  before_each(function()
+    clock = extend(Clock)()
+  end)
+
+  it('has CLK output', function()
+    assert.is_not_nil(clock.CLK)
+  end)
+
+  it('produces flipped signal on every update', function()
+    update_all_connected_gates(clock.input_gates)
+    assert.equals(H, clock.CLK.current_signal)
+    update_all_connected_gates(clock.input_gates)
+    assert.equals(L, clock.CLK.current_signal)
+    update_all_connected_gates(clock.input_gates)
+    assert.equals(H, clock.CLK.current_signal)
+  end)
+
+  it('starts from Low-state signal by default', function()
+    assert.equals(L, clock.CLK.current_signal)
+  end)
+
+  it('starting signal value can be specified', function()
+    clock = extend(Clock)(H)
+    assert.equals(H, clock.CLK.current_signal)
+  end)
+end)
+
 describe('a SR latch', function()
   local SR = require('component').SR
   local sr

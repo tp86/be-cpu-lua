@@ -20,7 +20,6 @@ local function extend(base, extension)
   add_base(extension, base)
   return function(...)
     local base_init = base.init or function() end
-    extension.init = nil
     base_init(extension, ...)
     if extension_init then
       local args = table.pack(...)
