@@ -125,7 +125,7 @@ local Flipper = extend(SignalSource, {
   signal = L,
 })()
 
-local function update_all_from(input_gates)
+local function update_all_connected_gates(input_gates)
   local gates_to_update = input_gates
   repeat
     local next_gates = {}
@@ -161,5 +161,5 @@ return {
     Flipper = Flipper,
     Constant = SignalSource,
   },
-  update_all_from = update_all_from,
+  update_all_connected_gates = update_all_connected_gates,
 }

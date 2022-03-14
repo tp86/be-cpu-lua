@@ -5,7 +5,7 @@ local ComponentBase = {
   init = function(Component)
     Component.init = function(instance)
       instance[1](instance)
-      gates.update_all_from(instance.input_gates or error('component should have specified input_gates', 3))
+      gates.update_all_connected_gates(instance.input_gates or error('component should have specified input_gates', 3))
     end
   end,
 }
