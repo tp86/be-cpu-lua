@@ -33,8 +33,32 @@ local SR = extend(ComponentBase, {
   end,
 })()
 
+local D = extend(ComponentBase, {
+  function(d)
+    local sr = extend(SR)()
+    local s_and = extend(gates.And)()
+    local r_and = extend(gates.And)()
+    local d_not = extend(gates.Not)()
+    local e_in = extend(gates.support.Broadcast)()
+    local d_in = extend(gates.support.Broadcast)()
+    d_in.output:connect(d_not.A)
+    d_in.output:connect(s_and.B)
+    e_in.output:connect(r_and.B)
+    e_in.output:connect(s_and.A)
+    d_not.B:connect(r_and.A)
+    r_and.C:connect(sr.R)
+    s_and.C:connect(sr.S)
+    d.D = d_in.input
+    d.EN = e_in.input
+    d.Q = sr.Q
+    d._Q = sr._Q
+    d.input_gates = {d_in, e_in}
+  end,
+})()
+
 return {
   ComponentBase = ComponentBase,
   Clock = Clock,
   SR = SR,
+  D = D,
 }

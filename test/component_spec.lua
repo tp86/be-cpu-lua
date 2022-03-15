@@ -108,3 +108,38 @@ describe('a SR latch', function()
     })
   end)
 end)
+
+describe('a D latch', function()
+  local D = require('component').D
+  local d
+
+  before_each(function()
+    d = extend(D)()
+  end)
+
+  it('has proper interface', function()
+    assert.is_not_nil(d.D)
+    assert.is_not_nil(d.EN)
+    assert.is_not_nil(d.Q)
+    assert.is_not_nil(d._Q)
+  end)
+
+  it('is initialized in reset state', function()
+    assert.equals(L, d.Q.current_signal)
+    assert.equals(H, d._Q.current_signal)
+  end)
+
+  it('latches on D signal state only when enabled', function()
+    assert_all(d, {
+      {{D = L, EN = L}, {Q = L, _Q = H}},
+      {{D = H, EN = L}, {Q = L, _Q = H}},
+      {{D = H, EN = H}, {Q = H, _Q = L}},
+      {{D = H, EN = L}, {Q = H, _Q = L}},
+      {{D = L, EN = L}, {Q = H, _Q = L}},
+      {{D = H, EN = L}, {Q = H, _Q = L}},
+      {{D = H, EN = H}, {Q = H, _Q = L}},
+      {{D = L, EN = H}, {Q = L, _Q = H}},
+      {{D = L, EN = L}, {Q = L, _Q = H}},
+    })
+  end)
+end)
