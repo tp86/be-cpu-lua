@@ -431,3 +431,39 @@ describe('a Constant source', function()
     assert.spy(s).was_called_with(ref, 1)
   end)
 end)
+
+describe('an EdgeDetector', function()
+  local EdgeDetector = require('gate').support.EdgeDetector
+
+  it('has one input', function()
+    local ed = extend(EdgeDetector)()
+    assert.is_not_nil(ed.input)
+  end)
+
+  it('has output', function()
+    local ed = extend(EdgeDetector)()
+    assert.is_not_nil(ed.output)
+  end)
+
+  it('updates connected gates on rising edge (default) only', function()
+    local ed = extend(EdgeDetector)()
+    local propagate = spy.on(ed.output, 'propagate')
+    ed.input.signal = L
+    ed:update()
+    assert.spy(propagate).was_not_called()
+    ed.input.signal = H
+    ed:update()
+    assert.spy(propagate).was_called()
+  end)
+
+  it('updates connected gates on different edge if specified', function()
+    local ed = extend(EdgeDetector)(L)
+    local propagate = spy.on(ed.output, 'propagate')
+    ed.input.signal = H
+    ed:update()
+    assert.spy(propagate).was_not_called()
+    ed.input.signal = L
+    ed:update()
+    assert.spy(propagate).was_called()
+  end)
+end)
