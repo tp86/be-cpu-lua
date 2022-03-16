@@ -143,3 +143,38 @@ describe('a D latch', function()
     })
   end)
 end)
+
+describe('a D flip-flop', function()
+  local D = require('component').D_ff
+  local d
+
+  before_each(function()
+    d = extend(D)()
+  end)
+
+  it('has proper interface', function()
+    assert.is_not_nil(d.D)
+    assert.is_not_nil(d.CLK)
+    assert.is_not_nil(d.Q)
+    assert.is_not_nil(d._Q)
+  end)
+
+  it('is initialized in reset state', function()
+    assert.equals(L, d.Q.current_signal)
+    assert.equals(H, d._Q.current_signal)
+  end)
+
+  it('latches on D signal state only on rising edge', function()
+    assert_all(d, {
+      {{D = L, CLK = L}, {Q = L, _Q = H}},
+      {{D = H, CLK = L}, {Q = L, _Q = H}},
+      {{D = H, CLK = H}, {Q = H, _Q = L}},
+      {{D = L, CLK = H}, {Q = H, _Q = L}},
+      {{D = H, CLK = H}, {Q = H, _Q = L}},
+      {{D = H, CLK = L}, {Q = H, _Q = L}},
+      {{D = L, CLK = L}, {Q = H, _Q = L}},
+      {{D = L, CLK = H}, {Q = L, _Q = H}},
+      {{D = L, CLK = L}, {Q = L, _Q = H}},
+    })
+  end)
+end)

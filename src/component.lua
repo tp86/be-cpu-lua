@@ -56,9 +56,25 @@ local D = extend(ComponentBase, {
   end,
 })()
 
+local D_ff = extend(ComponentBase, {
+  function(d)
+    local d_ = extend(D)()
+    local clk_in = extend(gates.support.EdgeDetector)()
+    local d_in = extend(gates.support.Broadcast)()
+    d_in.output:connect(d_.D)
+    clk_in.output:connect(d_.EN)
+    d.D = d_in.input
+    d.CLK = clk_in.input
+    d.Q = d_.Q
+    d._Q = d_._Q
+    d.input_gates = {d_in, clk_in}
+  end,
+})()
+
 return {
   ComponentBase = ComponentBase,
   Clock = Clock,
   SR = SR,
   D = D,
+  D_ff = D_ff,
 }
