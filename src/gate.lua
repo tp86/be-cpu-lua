@@ -150,6 +150,22 @@ local EdgeDetector = extend(Gate, {
   end,
 })()
 
+local Buffer = extend(Gate2, {
+  init = function(obj)
+    obj.input = obj.inputs[1]
+    obj.enable = obj.inputs[2]
+  end,
+  update_fn = function(signal, enable)
+    return signal, enable
+  end,
+  process_update_results = function(self, input, enable)
+    if enable == signal.H then
+      return self.output:propagate(input)
+    end
+    return {}
+  end,
+})()
+
 local function update_all_connected_gates(input_gates)
   local gates_to_update = input_gates
   repeat
@@ -186,6 +202,7 @@ return {
     Flipper = Flipper,
     Constant = SignalSource,
     EdgeDetector = EdgeDetector,
+    Buffer = Buffer,
   },
   update_all_connected_gates = update_all_connected_gates,
 }

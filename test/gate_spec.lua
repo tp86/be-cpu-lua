@@ -486,3 +486,47 @@ describe('an EdgeDetector', function()
 
   end)
 end)
+
+describe('a Buffer', function()
+  local Buffer = require('gate').support.Buffer
+  local buffer
+
+  before_each(function()
+    buffer = extend(Buffer)()
+  end)
+
+  it('has 2 inputs', function()
+    assert.is_not_nil(buffer.input)
+    assert.is_not_nil(buffer.enable)
+  end)
+
+  it('has output', function()
+    assert.is_not_nil(buffer.output)
+  end)
+
+  it('does not propagate input if not enabled', function()
+    buffer.enable.signal = L
+    buffer.input.signal = L
+    local propagate = spy.on(buffer.output, 'propagate')
+    local next_gates = buffer:update()
+    assert.spy(propagate).was_not_called()
+    assert.same({}, next_gates)
+    buffer.input.signal = H
+    local next_gates = buffer:update()
+    assert.spy(propagate).was_not_called()
+    assert.same({}, next_gates)
+  end)
+
+  it('propagates input signal when enabled', function()
+    buffer.enable.signal = H
+    buffer.input.signal = L
+    local propagate = spy.on(buffer.output, 'propagate')
+    local ref = require('luassert.match').is_ref(buffer.output)
+    buffer:update()
+    assert.spy(propagate).was_called_with(ref, L)
+    buffer.output.propagate:clear()
+    buffer.input.signal = H
+    buffer:update()
+    assert.spy(propagate).was_called_with(ref, H)
+  end)
+end)
