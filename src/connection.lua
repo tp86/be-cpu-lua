@@ -37,6 +37,7 @@ local Input = {
     if self.connection == output then
       return
     end
+    self:disconnect()
     self.connection = output
     if output.connect then
       output:connect(self)

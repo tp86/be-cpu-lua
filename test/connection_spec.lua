@@ -75,12 +75,17 @@ describe('an Input', function()
   end)
 
   it('can be connected to one output at a time', function()
-    local output1 = {}
-    local output2 = {}
+    local Output = require('connection').Output
+    local output1 = extend(Output)()
+    local output2 = extend(Output)()
     input:connect(output1)
     assert.equals(output1, input:connected())
+    assert.truthy(output1:connection_to(input))
+    assert.falsy(output2:connection_to(input))
     input:connect(output2)
     assert.equals(output2, input:connected())
+    assert.falsy(output1:connection_to(input))
+    assert.truthy(output2:connection_to(input))
   end)
 
   it('has parent (gate)', function()
