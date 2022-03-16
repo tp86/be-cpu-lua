@@ -1,5 +1,60 @@
 local extend = require('oop').extend
 
+describe('a MultiInput', function()
+  local MultiInput = require('connection').MultiInput
+  local input
+
+  before_each(function()
+    input = extend(MultiInput)()
+  end)
+
+  it('can be connected', function()
+    local output = {}
+    input:connect(output)
+    assert.truthy(input:connected(output))
+  end)
+
+  it('can be disconnected', function()
+    local output = {}
+    input:disconnect(output)
+    assert.falsy(input:connected(output))
+  end)
+
+  it('has parent', function()
+    local parent = {}
+    input = extend(MultiInput)(parent)
+    assert.equals(input.parent, parent)
+  end)
+
+  it('can be connected to many outputs at a time', function()
+    local output1 = {}
+    local output2 = {}
+    input:connect(output1)
+    input:connect(output2)
+    assert.truthy(input:connected(output1))
+    assert.truthy(input:connected(output2))
+  end)
+
+  it('has default signal when not yet propagated from connected output', function()
+    assert.is_not_nil(input.signal)
+  end)
+
+  it('stores the last received signal from connected outputs', function()
+    local Output = require('connection').Output
+    local output1 = extend(Output)()
+    local output2 = extend(Output)()
+    output1:connect(input)
+    output2:connect(input)
+    output1:propagate(2)
+    assert.equals(2, input.signal)
+    output2:propagate(3)
+    assert.equals(3, input.signal)
+    output2:propagate(4)
+    output1:propagate(5)
+    assert.equals(5, input.signal)
+  end)
+end)
+
 describe('an Input', function()
   local Input = require('connection').Input
   local input

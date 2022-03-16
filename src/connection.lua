@@ -1,5 +1,33 @@
 local L = require('signal').L
 
+local MultiInput = {
+  init = function(obj, parent)
+    obj.parent = parent
+    obj.signal = L
+    obj.connections = {}
+  end,
+  connect = function(self, output)
+    if self.connections[output] then
+      return
+    end
+    self.connections[output] = true
+    if output.connect then
+      output:connect(self)
+    end
+  end,
+  disconnect = function(self, output)
+    if self.connections[output] then
+      if output.disconnect then
+        output:disconnect(self)
+      end
+      self.connections[output] = nil
+    end
+  end,
+  connected = function(self, output)
+    return self.connections[output]
+  end,
+}
+
 local Input = {
   init = function(obj, parent)
     obj.parent = parent
@@ -66,6 +94,7 @@ local Output = {
 }
 
 return {
+  MultiInput = MultiInput,
   Input = Input,
   Output = Output,
 }
