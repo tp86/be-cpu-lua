@@ -434,19 +434,21 @@ end)
 
 describe('an EdgeDetector', function()
   local EdgeDetector = require('gate').support.EdgeDetector
+  local ed
+
+  before_each(function()
+    ed = extend(EdgeDetector)()
+  end)
 
   it('has one input', function()
-    local ed = extend(EdgeDetector)()
     assert.is_not_nil(ed.input)
   end)
 
   it('has output', function()
-    local ed = extend(EdgeDetector)()
     assert.is_not_nil(ed.output)
   end)
 
   it('updates connected gates on rising edge (default) only', function()
-    local ed = extend(EdgeDetector)()
     local propagate = spy.on(ed.output, 'propagate')
     ed.input.signal = L
     ed:update()
@@ -465,5 +467,22 @@ describe('an EdgeDetector', function()
     ed.input.signal = L
     ed:update()
     assert.spy(propagate).was_called()
+  end)
+
+  it('pulses 2 signal changes to connected gate', function()
+    local propagate = spy.on(ed.output, 'propagate')
+    ed.input.signal = ed.edge
+    local to_update = ed:update()
+    repeat
+      local next_update = {}
+      for _, gate in ipairs(to_update) do
+        for _, next_gate in ipairs(gate:update()) do
+          next_update[#next_update + 1] = next_gate
+        end
+      end
+      to_update = next_update
+    until not next(to_update)
+    assert.spy(propagate).was_called(2)
+
   end)
 end)

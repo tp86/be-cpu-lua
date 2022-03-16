@@ -2,7 +2,7 @@ local extend = require('oop').extend
 local connection = require('connection')
 local Output = connection.Output
 local Input = connection.Input
-local L = require('signal').L
+local signal = require('signal')
 local do_nil = function() end
 
 local Updatable = {
@@ -122,7 +122,32 @@ local Flipper = extend(SignalSource, {
     self.signal = s
     return SignalSource.process_update_results(self, s)
   end,
-  signal = L,
+  signal = signal.L,
+})()
+
+local EdgeDetector = extend(Gate, {
+  edge = signal.H,
+  init = function(obj, edge)
+    obj.input = obj.inputs[1]
+    if edge then
+      obj.edge = edge
+    end
+  end,
+  update_fn = function(s) return s end,
+  process_update_results = function(self, signal)
+    if signal == self.edge then
+      if not self.triggered then
+        self.triggered = true
+        local next_gates = self.output:propagate(signal)
+        next_gates[#next_gates + 1] = self
+        return next_gates
+      else
+        self.triggered = false
+        return self.output:propagate(~signal)
+      end
+    end
+    return {}
+  end,
 })()
 
 local function update_all_connected_gates(input_gates)
@@ -160,6 +185,7 @@ return {
     Printer = Printer,
     Flipper = Flipper,
     Constant = SignalSource,
+    EdgeDetector = EdgeDetector,
   },
   update_all_connected_gates = update_all_connected_gates,
 }
