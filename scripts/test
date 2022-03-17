@@ -2,6 +2,7 @@
 
 local git_root = require('scripts.common').git_root
 
+os.execute(string.format('rm -f %s/luacov.*', git_root))
 local cmd = string.format('%s/.luarocks/bin/busted --coverage test', git_root)
 os.execute(cmd)
 
