@@ -1,68 +1,92 @@
-local function check_called_in_init()
-  local level = 4
-  local valid_level = debug.getinfo(level)
-  if valid_level and valid_level.what == 'Lua' then
-    local name, value = debug.getlocal(level, 1)
-    return name == 'initializer' and value.init
-  end
-  return false
-end
-local function initializer(obj, init_fn)
-  return setmetatable({init=true}, {
-    __call = function(initializer, ...)
-      print('calling initializer with', ...)
-      local in_init = check_called_in_init()
-      local o
-      if in_init then
-        print('in init')
-        local _, self_in_init = debug.getlocal(2, 1)
-        print(self_in_init)
-        o = self_in_init
-        -- how to get x here
-        -- how to get last metatable in chain?
-        local meta = self_in_init
-        repeat
-          meta = getmetatable(getmetatable(meta).__index)
-        until getmetatable(meta) == nil
-        print('obj', obj)
-        print('meta', meta)
-        setmetatable(meta, {__index = setmetatable({}, {__index = function(t, k) return obj[k] or (getmetatable(t) or {})[k] end})})
-      else
-        print('not in init')
-        o = {}
-        print(o)
-        print('obj', obj)
-        local m = {}
-        print('m', m)
-        setmetatable(o, {__index = setmetatable(m, {__index = function(t, k) return obj[k] or (getmetatable(t) or {})[k] end})})
-      end
-      init_fn(o, ...)
-      return o
+local prototypes = {}
+local proto_mt = {
+  __index = function(t, k)
+    for _, proto in ipairs(prototypes[t]) do
+      local v = proto[k]
+      if v ~= nil then return v end
     end
-  })
+  end
+}
+local factories = {}
+local function factory(prototype, initializer)
+  local function factory_fn(...)
+    -- register itself as factory
+    factories[factory_fn] = true
+    local in_init = false
+    -- check if called from initializer wrapped in another factory (another factory in call stack)
+    -- if so, remember stack level
+    local level = 3
+    local caller = debug.getinfo(level, 'f')
+    while caller do
+      in_init = factories[caller.func]
+      if in_init then break end
+      level = level + 1
+      caller = debug.getinfo(level, 'f')
+    end
+    local o
+    if in_init then
+      -- called in another initializer
+      -- access first parameter (object being initialized)
+      local _, obj = debug.getlocal(level - 1, 1)
+      o = obj
+      local obj_prototypes = prototypes[obj]
+      obj_prototypes[#obj_prototypes + 1] = prototype
+    else
+      -- called outside of initializers - create new object to be initialized
+      o = setmetatable({}, proto_mt)
+      prototypes[o] = {prototype}
+    end
+    initializer(o, ...)
+    return o
+  end
+  return factory_fn
 end
 
 local base = {a = 3}
-print('base', base)
-local base_init = function(self)
-  print('base init called with', self)
+local base_init = function(self, ...)
+  print('base_init called with', ...)
+  self.c = self.a + 4
 end
-base_init = initializer(base, base_init)
+base_init = factory(base, base_init)
 local x = {b = 2}
-print('x', x)
 local x_init = function(self, ...)
-  print('self in x_init', self)
-  base_init(1, 2, 3)
+  base_init(1, self.b, 3)
 end
-xfn = initializer(x, x_init)
-print('calling x')
+xfn = factory(x, x_init)
 local xobj = xfn()
+print('accessing')
 print(xobj.a)
 print(xobj.b)
-print('raw call')
+print(xobj.c)
 local baseobj = base_init(4, 5, 6)
-print(getmetatable(baseobj))
 
+local A = {
+  a = function(self)
+    print('a', self, self.x)
+  end
+}
+local Amaker = factory(A, function(self, x)
+  self.x = x
+end)
+local a = Amaker(5)
+assert(a.x == 5)
+print(a)
+a:a()
+assert(A.x == nil)
 
--- TODO chain of inheritance + methods
--- test prototypes (inheritance not added)
+local B = {b = function(self) print('b', self, self.y)end }
+local function am(y)
+  Amaker(11 - y)
+end
+local Bmaker = factory(B, function(self, y)
+  am(y)
+  self.y = self.x + y
+end)
+local b = Bmaker(4)
+assert(b.y == 11)
+print(b)
+b:a()
+b:b()
+assert(A.b == nil)
+assert(getmetatable(A) == nil)
+assert(getmetatable(B) == nil)
