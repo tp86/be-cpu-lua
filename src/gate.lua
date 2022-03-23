@@ -18,7 +18,7 @@ local Updatable = {
 
 local Source = extend(Updatable, {
   init = function(obj)
-    obj.output = extend(Output)()
+    obj.output = Output()
   end,
   process_update_results = function(self, signal)
     return self.output:propagate(signal)
@@ -30,7 +30,7 @@ local Sink = extend(Updatable, {
     local n_inputs = n_inputs or 1
     obj.inputs = {}
     for i = 1, n_inputs do
-      obj.inputs[i] = extend(Input)(obj)
+      obj.inputs[i] = Input(obj)
     end
   end,
   prepare_update_args = function(self)

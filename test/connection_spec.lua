@@ -1,38 +1,15 @@
-local extend = require('oop').extend
-
 describe('a MultiInput', function()
   local MultiInput = require('connection').MultiInput
   local input
 
   before_each(function()
-    input = extend(MultiInput)()
-  end)
-
-  it('can be connected', function()
-    local output = {}
-    input:connect(output)
-    assert.truthy(input:connected(output))
-  end)
-
-  it('can be disconnected', function()
-    local output = {}
-    input:disconnect(output)
-    assert.falsy(input:connected(output))
+    input = MultiInput()
   end)
 
   it('has parent', function()
     local parent = {}
-    input = extend(MultiInput)(parent)
+    input = MultiInput(parent)
     assert.equals(input.parent, parent)
-  end)
-
-  it('can be connected to many outputs at a time', function()
-    local output1 = {}
-    local output2 = {}
-    input:connect(output1)
-    input:connect(output2)
-    assert.truthy(input:connected(output1))
-    assert.truthy(input:connected(output2))
   end)
 
   it('has default signal when not yet propagated from connected output', function()
@@ -41,8 +18,8 @@ describe('a MultiInput', function()
 
   it('stores the last received signal from connected outputs', function()
     local Output = require('connection').Output
-    local output1 = extend(Output)()
-    local output2 = extend(Output)()
+    local output1 = Output()
+    local output2 = Output()
     output1:connect(input)
     output2:connect(input)
     output1:propagate(2)
@@ -60,37 +37,20 @@ describe('an Input', function()
   local input
 
   before_each(function()
-    input = extend(Input)()
-  end)
-
-  it('can be connected', function()
-    local output = {}
-    input:connect(output)
-    assert.equals(output, input:connected())
-  end)
-
-  it('can be disconnected', function()
-    input:disconnect()
-    assert.is_falsy(input:connected())
+    input = Input()
   end)
 
   it('can be connected to one output at a time', function()
     local Output = require('connection').Output
-    local output1 = extend(Output)()
-    local output2 = extend(Output)()
-    input:connect(output1)
-    assert.equals(output1, input:connected())
-    assert.truthy(output1:connection_to(input))
-    assert.falsy(output2:connection_to(input))
-    input:connect(output2)
-    assert.equals(output2, input:connected())
-    assert.falsy(output1:connection_to(input))
-    assert.truthy(output2:connection_to(input))
+    local output1 = Output()
+    local output2 = Output()
+    output1:connect(input)
+    assert.has.errors(function() output2:connect(input) end)
   end)
 
   it('has parent (gate)', function()
     local parent = {}
-    input = extend(Input)(parent)
+    input = Input(parent)
     assert.equals(input.parent, parent)
   end)
 
@@ -105,7 +65,7 @@ describe('an Output', function()
   local output
 
   before_each(function()
-    output = extend(Output)()
+    output = Output()
   end)
 
   it('can be connected', function()
@@ -120,16 +80,6 @@ describe('an Output', function()
     output:connect(input1)
     output:connect(input2)
     assert.is_truthy(output:connection_to(input1))
-    assert.is_truthy(output:connection_to(input2))
-  end)
-
-  it('can be disconnected given connected input', function()
-    local input1 = {}
-    local input2 = {}
-    output:connect(input1)
-    output:connect(input2)
-    output:disconnect(input1)
-    assert.is_falsy(output:connection_to(input1))
     assert.is_truthy(output:connection_to(input2))
   end)
 
@@ -172,40 +122,5 @@ describe('an Output', function()
     assert.equals(2, #parents)
     assert.equals(parent, parents[1])
     assert.equals(parent, parents[2])
-  end)
-end)
-
-describe('a Connection', function()
-  -- a Connection means that both Input and Output have references to each other
-  local connection = require('connection')
-  local Input = connection.Input
-  local Output = connection.Output
-  local input, output
-
-  before_each(function()
-    input = extend(Input)()
-    output = extend(Output)()
-  end)
-
-  it('is established on Input connection', function()
-    input:connect(output)
-    assert.is_truthy(output:connection_to(input))
-  end)
-
-  it('is established on Output connectin', function()
-    output:connect(input)
-    assert.is_truthy(input:connected())
-  end)
-
-  it('is removed on Input disconnection', function()
-    output:connect(input)
-    input:disconnect()
-    assert.is_falsy(output:connection_to(input))
-  end)
-  
-  it('is removed on Output disconnection', function()
-    output:connect(input)
-    output:disconnect(input)
-    assert.is_falsy(input:connected())
   end)
 end)
